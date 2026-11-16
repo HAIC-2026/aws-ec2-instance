@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="AllReady: an ESF-6 planning aid for access and functional needs in Hawaiʻi. Public, de-identified, area-level data only.">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>AllReady · Planning map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+<a class="skip" href="#ws">Skip to the workspace</a>
+<header id="bar">
+  <button id="lpToggle" class="ibtn" type="button" aria-pressed="true" aria-label="Show or hide the left panels" title="Show or hide the left panels">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>
+  </button>
+  <a class="mark" href="home.html" aria-label="AllReady home">All<span>Ready</span></a>
+  <span class="sub">ESF-6 planning · County-led, State-supported</span>
+  <span id="scn" class="chip" hidden></span>
+  <div class="grow"></div>
+  <button id="wsMenu" class="ibtn wide" type="button" title="Add, remove and arrange widgets. Anything you close can be added back here.">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="7" height="18" rx="1.5"/><rect x="14" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="15" width="7" height="6" rx="1.5"/></svg>
+    <span>Widgets</span>
+  </button>
+  <a class="lnk" href="insights.html">Insights</a>
+  <a class="lnk" href="home.html" data-i="home">Home</a>
+  <div id="theme-host"></div>
+  <button id="refresh" class="ibtn" type="button" aria-label="Re-read all data sources now" title="Re-read all data sources now"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button>
+  <div id="lang-host"></div>
+  <div class="clock"><span id="clk">--:--:-- HST</span><i id="readLine" role="status">Reading data…</i></div>
+</header>
+
+<div id="rail"></div>
+
+<main id="ws" aria-label="Planning workspace">
+  <div id="center">
+    <div id="map" role="application" aria-label="Planning map of Hawaiʻi"></div>
+    <div id="nogl" hidden><p>This browser could not start WebGL, which the map needs. Try another browser or turn on hardware acceleration.</p></div>
+    <div class="ctrl" id="mapctl" role="toolbar" aria-label="Map view">
+      <button type="button" id="vHi" data-i="hiBtn">Hawaiʻi</button>
+      <select id="isl" class="sel" aria-label="Go to island"></select>
+      <button type="button" id="vTilt" aria-pressed="false" data-i="tilt">3D tilt</button>
+      <button type="button" id="vGlobe" aria-pressed="false" data-i="globe">Globe</button>
+    </div>
+  </div>
+</main>
+
+<!-- Panel contents. The workspace moves each block into a dockable panel at start-up. -->
+<div id="panelsrc" hidden>
+  <div data-src="layers">
+    <div class="tools">
+      <input id="q" type="search" autocomplete="off" data-ip="filter" placeholder="Filter layers…" aria-label="Filter layers">
+      <button id="clearAll" class="link" type="button" data-i="clear">Clear data layers</button>
+    </div>
+    <div id="groups" class="scroll"></div>
+    <details id="arcAdd" class="arcadd">
+      <summary>Add an ArcGIS layer</summary>
+      <div class="arcbody">
+        <label>Hawaiʻi Statewide GIS
+          <select id="arcPreset" class="sel"><option value="">Choose a public layer…</option></select>
+        </label>
+        <form id="arcForm" class="arcform" autocomplete="off">
+          <input id="arcUrl" type="url" inputmode="url" placeholder="…/MapServer/3 or …/FeatureServer/0" aria-label="ArcGIS service address">
+          <button type="submit">Add</button>
+        </form>
+        <p id="arcMsg" class="src" role="status">Any public ArcGIS REST layer works: State, county, ArcGIS Online, CDC, FEMA. Services that need a sign-in are refused.</p>
+      </div>
+    </details>
+    <footer class="foot">Sources: CDC/ATSDR SVI, HHS emPOWER, county shelter feeds, Hawaiʻi Statewide GIS, FEMA, USGS, NWS, NASA, Open-Meteo, OpenStreetMap.</footer>
+  </div>
+
+  <div data-src="alerts">
+    <div class="tools"><span id="alertSrc" class="src">Checking National Weather Service…</span><button id="alertRefresh" class="link" type="button" data-i="refresh">Refresh</button></div>
+    <ul id="alertList" class="scroll alerts"></ul>
+  </div>
+
+  <div data-src="needs">
+    <div class="tools">
+      <label class="scope">Area <select id="needScope" class="sel" aria-label="Area to total"></select></label>
+    </div>
+    <div id="needsBody" class="scroll pad"></div>
+  </div>
+
+  <div data-src="inspector">
+    <div class="scroll pad">
+      <p id="inspEmpty" class="empty">Click anywhere on the map to see coordinates, elevation, the forecast, and the access and functional needs of that census tract.</p>
+      <div id="inspBody" hidden aria-live="polite">
+        <span class="tag" id="sTag">Point inspector</span>
+        <h3 id="sTitle">Selected location</h3>
+        <div id="sRows"></div>
+        <button id="rClose" class="link" type="button">Clear selection</button>
+      </div>
+    </div>
+  </div>
+
+  <div data-src="legend">
+    <div class="scroll pad">
+      <div id="legend" aria-label="Legend"></div>
+      <p id="legendEmpty" class="empty">Turn on a data layer to see its legend here.</p>
+    </div>
+  </div>
+
+  <div data-src="assistant"><div id="aiBody"></div></div>
+
+  <div data-src="markup"><div id="mkBody"></div></div>
+
+  <div data-src="shelters"><div id="shelBody"></div></div>
+
+  <div data-src="resources"><div id="resBody"></div></div>
+
+  <div data-src="metrics"><div id="mxHost" class="scroll"></div></div>
+
+  <div data-src="factors"><div id="facBody"></div></div>
+
+  <div data-src="scenario"><div id="scMode" class="sc-mode"></div><div id="scLive" class="sc-live"></div><div id="scHost"></div></div>
+  <div data-src="timeline"><div id="tlHost"></div></div>
+  <div data-src="sources"><div id="srcBody"></div></div>
+</div>
+<script type="module" src="/src/planner.js"></script>
+</body>
+</html>

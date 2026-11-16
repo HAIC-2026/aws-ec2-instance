@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AllReady · Insights</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="ins-body">
+<a class="skip" href="#ins">Skip to the dashboard</a>
+<header id="bar">
+  <a class="mark" href="home.html" aria-label="AllReady home">All<span>Ready</span></a>
+  <span class="sub">Insights · ESF-6 gaps and readiness</span>
+  <div class="grow"></div>
+  <div id="scopebar" class="scopebar"></div>
+  <button id="addWidget" class="btn" type="button">+ Add widget</button>
+  <button id="printBtn" class="btn ghost" type="button">Print brief</button>
+  <a class="lnk" href="index.html">Map</a>
+  <a class="lnk" href="home.html">Home</a>
+  <div id="theme-host"></div>
+  <button id="refresh" class="ibtn" type="button" aria-label="Re-read all data sources now" title="Re-read all data sources now"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button>
+  <div id="lang-host"></div>
+  <div class="clock"><span id="clk">--:--:-- HST</span><i>Public data only · no PII</i></div>
+</header>
+
+<main id="ins" aria-label="Insights dashboard">
+  <div id="status" class="ins-status" role="status">Loading census tracts, county shelter feeds and HHS emPOWER…</div>
+  <div id="grid" class="grid" aria-label="Dashboard widgets"></div>
+  <footer class="ins-foot">
+    <p>Sources: CDC/ATSDR Social Vulnerability Index 2022 (ACS 2018–2022) · HHS emPOWER · Honolulu Dept. of Emergency Management · Hawaiʻi County Civil Defense Agency · Kauaʻi County Emergency Management Agency · Hawaiʻi Statewide GIS. Every figure is derived from published, de-identified, area-level data. Not an alert.</p>
+  </footer>
+</main>
+
+<!-- widget palette -->
+<div id="palette" class="palette" hidden role="dialog" aria-modal="true" aria-label="Add a widget">
+  <div class="palette-card">
+    <header><h2>Add a widget</h2><button id="palClose" class="ibtn" type="button" aria-label="Close">✕</button></header>
+    <p class="src">Nothing is ever lost — anything you remove can be added back here, and you can add the same widget more than once to compare two scenarios or two counties side by side.</p>
+    <div id="palList" class="palette-list"></div>
+  </div>
+</div>
+
+<script type="module" src="/src/insights.js"></script>
+</body>
+</html>

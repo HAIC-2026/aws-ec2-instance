@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>AllReady · Access and functional needs planning for Hawaiʻi</title>
+  <meta name="description" content="AllReady helps Hawaiʻi plan mass care so people with access and functional needs are already in the plan before a disaster.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+  <canvas id="gl" aria-hidden="true"></canvas>
+  <div class="scrim" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <div id="loader" class="loader" role="status"><span>Raising the islands…</span></div>
+
+  <a class="skip" href="#sec-0">Skip to content</a>
+  <header class="top">
+    <a class="mark" href="#sec-0" aria-label="AllReady, back to top">All<span>Ready</span><small>Access and functional needs planning · Hawaiʻi</small></a>
+    <nav class="top-nav" aria-label="Primary">
+      <a href="insights.html">Insights</a>
+      <span id="lang-host"></span>
+      <a class="pill" href="index.html">Open planning map</a>
+    </nav>
+  </header>
+
+  <nav class="rail" aria-label="Islands">
+    <button data-go="1"><span class="n">01</span><span class="nm">Niʻihau</span><i></i></button>
+    <button data-go="2"><span class="n">02</span><span class="nm">Kauaʻi</span><i></i></button>
+    <button data-go="3"><span class="n">03</span><span class="nm">Oʻahu</span><i></i></button>
+    <button data-go="4"><span class="n">04</span><span class="nm">Molokaʻi</span><i></i></button>
+    <button data-go="5"><span class="n">05</span><span class="nm">Lānaʻi</span><i></i></button>
+    <button data-go="6"><span class="n">06</span><span class="nm">Kahoʻolawe</span><i></i></button>
+    <button data-go="7"><span class="n">07</span><span class="nm">Maui</span><i></i></button>
+    <button data-go="8"><span class="n">08</span><span class="nm">Hawaiʻi Island</span><i></i></button>
+  </nav>
+
+  <div id="beacons" class="beacons" hidden aria-hidden="true"></div>
+  <main>
+    <section class="chapter hero is-active" id="sec-0">
+      <div class="copy">
+        <p class="eyebrow">ESF-6 mass care · access and functional needs</p>
+        <h1>Already in the plan.</h1>
+        <p class="lede">When a hurricane, wildfire, tsunami or flood threatens Hawaiʻi, the people who need the most help should be in the plan before it arrives. AllReady brings together where residents with access and functional needs live, what each county’s shelters can support, and who acts when.</p>
+        <p class="status" id="liveStatus" role="status">Reading live feeds…</p>
+        <div class="actions">
+          <a class="btn primary" href="index.html">Open planning map</a>
+          <a class="btn" href="insights.html">Open insights</a>
+        </div>
+        <ul class="pillars">
+          <li><b>Who and where</b>Residents by census tract across the CMIST needs: communication, medical, independence, safety and support, transportation.</li>
+          <li><b>What it takes</b>Shelter space, accessible space, power, water, transport and more, set against what the counties have on record.</li>
+          <li><b>Who acts</b>Counties lead mass care and the State supports. Decision points, contacts and an assistant that reads the live map.</li>
+        </ul>
+        <p class="hint"><i></i>Scroll for each island’s current figures</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="sec-1" data-island="niihau">
+      <div class="copy">
+        <p class="eyebrow"><b>01</b> / 08 · Kauaʻi County</p>
+        <h2>Niʻihau</h2>
+        <dl class="live" aria-live="polite">
+          <div><dt>Residents</dt><dd data-f="pop">…</dd></div>
+          <div><dt>With a disability</dt><dd data-f="dis">…</dd></div>
+          <div><dt>Age 65 and older</dt><dd data-f="a65">…</dd></div>
+          <div><dt>Limited English</dt><dd data-f="lep">…</dd></div>
+          <div><dt>Households, no vehicle</dt><dd data-f="nov">…</dd></div>
+          <div><dt>Shelters on record</dt><dd data-f="shel">…</dd></div>
+          <div><dt>Shelters open now</dt><dd data-f="open">…</dd></div>
+          <div><dt>Shelter spaces on record</dt><dd data-f="cap">…</dd></div>
+        </dl>
+        <p class="fine" data-f="note"></p>
+        <a class="btn sm" href="index.html?island=niihau">Open Niʻihau on the planning map</a>
+      </div>
+    </section>
+
+    <section class="chapter" id="sec-2" data-island="kauai">
+      <div class="copy">
+        <p class="eyebrow"><b>02</b> / 08 · Kauaʻi County</p>
+        <h2>Kauaʻi</h2>
+        <dl class="live" aria-live="polite">
+          <div><dt>Residents</dt><dd data-f="pop">…</dd></div>
+          <div><dt>With a disability</dt><dd data-f="dis">…</dd></div>
+          <div><dt>Age 65 and older</dt><dd data-f="a65">…</dd></div>
+          <div><dt>Limited English</dt><dd data-f="lep">…</dd></div>
+          <div><dt>Households, no vehicle</dt><dd data-f="nov">…</dd></div>
+          <div><dt>Shelters on record</dt><dd data-f="shel">…</dd></div>
+          <div><dt>Shelters open now</dt><dd data-f="open">…</dd></div>
+          <div><dt>Shelter spaces on record</dt><dd data-f="cap">…</dd></div>
+        </dl>
+        <p class="fine" data-f="note"></p>
+        <a class="btn sm" href="index.html?island=kauai">Open Kauaʻi on the planning map</a>
+      </div>
+    </section>
+
+    <section class="chapter" id="sec-3" data-island="oahu">
+      <div class="copy">
+        <p class="eyebrow"><b>03</b> / 08 · City and County of Honolulu</p>
+        <h2>Oʻahu</h2>
+        <dl class="live" aria-live="polite">
+          <div><dt>Residents</dt><dd data-f="pop">…</dd></div>
+          <div><dt>With a disability</dt><dd data-f="dis">…</dd></div>
+          <div><dt>Age 65 and older</dt><dd data-f="a65">…</dd></div>
+          <div><dt>Limited English</dt><dd data-f="lep">…</dd></div>
+          <div><dt>Households, no vehicle</dt><dd data-f="nov">…</dd></div>
+          <div><dt>Shelters on record</dt><dd data-f="shel">…</dd></div>
+          <div><dt>Shelters open now</dt><dd data-f="open">…</dd></div>
+          <div><dt>Shelter spaces on record</dt><dd data-f="cap">…</dd></div>
+        </dl>
+        <p class="fine" data-f="note"></p>
+        <a class="btn sm" href="index.html?island=oahu">Open Oʻahu on the planning map</a>
+      </div>
+    </section>
+
+    <section class="chapter" id="sec-4" data-island="molokai">
+      <div class="copy">
+        <p class="eyebrow"><b>04</b> / 08 · Maui County</p>
+        <h2>Molokaʻi</h2>
+        <dl class="live" aria-live="polite">
+          <div><dt>Residents</dt><dd data-f="pop">…</dd></div>
+          <div><dt>With a disability</dt><dd data-f="dis">…</dd></div>
+          <div><dt>Age 65 and older</dt><dd data-f="a65">…</dd></div>
+          <div><dt>Limited English</dt><dd data-f="lep">…</dd></div>
+          <div><dt>Households, no vehicle</dt><dd data-f="nov">…</dd></div>
+          <div><dt>Shelters on record</dt><dd data-f="shel">…</dd></div>
+          <div><dt>Shelters open now</dt><dd data-f="open">…</dd></div>
+          <div><dt>Shelter spaces on record</dt><dd data-f="cap">…</dd></div>
+        </dl>
+        <p class="fine" data-f="note"></p>
+        <a class="btn sm" href="index.html?island=molokai">Open Molokaʻi on the planning map</a>
+      </div>
+    </section>
+
+    <section class="chapter" id="sec-5" data-island="lanai">
+      <div class="copy">
+        <p class="eyebrow"><b>05</b> / 08 · Maui County</p>
+        <h2>Lānaʻi</h2>
+        <dl class="live" aria-live="polite">
+          <div><dt>Residents</dt><dd data-f="pop">…</dd></div>
+          <div><dt>With a disability</dt><dd data-f="dis">…</dd></div>
+          <div><dt>Age 65 and older</dt><dd data-f="a65">…</dd></div>
+          <div><dt>Limited English</dt><dd data-f="lep">…</dd></div>
+          <div><dt>Households, no vehicle</dt><dd data-f="nov">…</dd></div>
+          <div><dt>Shelters on record</dt><dd data-f="shel">…</dd></div>
+          <div><dt>Shelters open now</dt><dd data-f="open">…</dd></div>
+          <div><dt>Shelter spaces on record</dt><dd data-f="cap">…</dd></div>
+        </dl>
+        <p class="fine" data-f="note"></p>
+        <a class="btn sm" href="index.html?island=lanai">Open Lānaʻi on the planning map</a>
+      </div>
+    </section>
+
+    <section class="chapter" id="sec-6" data-island="kahoolawe">
+      <div class="copy">
+        <p class="eyebrow"><b>06</b> / 08 · Maui County</p>
+        <h2>Kahoʻolawe</h2>
+        <dl class="live" aria-live="polite">
+          <div><dt>Residents</dt><dd data-f="pop">…</dd></div>
+          <div><dt>With a disability</dt><dd data-f="dis">…</dd></div>
+          <div><dt>Age 65 and older</dt><dd data-f="a65">…</dd></div>
+          <div><dt>Limited English</dt><dd data-f="lep">…</dd></div>
+          <div><dt>Households, no vehicle</dt><dd data-f="nov">…</dd></div>
+          <div><dt>Shelters on record</dt><dd data-f="shel">…</dd></div>
+          <div><dt>Shelters open now</dt><dd data-f="open">…</dd></div>
+          <div><dt>Shelter spaces on record</dt><dd data-f="cap">…</dd></div>
+        </dl>
+        <p class="fine" data-f="note"></p>
+        <a class="btn sm" href="index.html?island=kahoolawe">Open Kahoʻolawe on the planning map</a>
+      </div>
+    </section>
+
+    <section class="chapter" id="sec-7" data-island="maui">
+      <div class="copy">
+        <p class="eyebrow"><b>07</b> / 08 · Maui County</p>
+        <h2>Maui</h2>
+        <dl class="live" aria-live="polite">
+          <div><dt>Residents</dt><dd data-f="pop">…</dd></div>
+          <div><dt>With a disability</dt><dd data-f="dis">…</dd></div>
+          <div><dt>Age 65 and older</dt><dd data-f="a65">…</dd></div>
+          <div><dt>Limited English</dt><dd data-f="lep">…</dd></div>
+          <div><dt>Households, no vehicle</dt><dd data-f="nov">…</dd></div>
+          <div><dt>Shelters on record</dt><dd data-f="shel">…</dd></div>
+          <div><dt>Shelters open now</dt><dd data-f="open">…</dd></div>
+          <div><dt>Shelter spaces on record</dt><dd data-f="cap">…</dd></div>
+        </dl>
+        <p class="fine" data-f="note"></p>
+        <a class="btn sm" href="index.html?island=maui">Open Maui on the planning map</a>
+      </div>
+    </section>
+
+    <section class="chapter" id="sec-8" data-island="hawaii">
+      <div class="copy">
+        <p class="eyebrow"><b>08</b> / 08 · Hawaiʻi County</p>
+        <h2>Hawaiʻi Island</h2>
+        <dl class="live" aria-live="polite">
+          <div><dt>Residents</dt><dd data-f="pop">…</dd></div>
+          <div><dt>With a disability</dt><dd data-f="dis">…</dd></div>
+          <div><dt>Age 65 and older</dt><dd data-f="a65">…</dd></div>
+          <div><dt>Limited English</dt><dd data-f="lep">…</dd></div>
+          <div><dt>Households, no vehicle</dt><dd data-f="nov">…</dd></div>
+          <div><dt>Shelters on record</dt><dd data-f="shel">…</dd></div>
+          <div><dt>Shelters open now</dt><dd data-f="open">…</dd></div>
+          <div><dt>Shelter spaces on record</dt><dd data-f="cap">…</dd></div>
+        </dl>
+        <p class="fine" data-f="note"></p>
+        <a class="btn sm" href="index.html?island=hawaii">Open Hawaiʻi Island on the planning map</a>
+      </div>
+    </section>
+
+    <section class="chapter end" id="sec-9">
+      <div class="copy">
+        <p class="eyebrow">For planners</p>
+        <h2>Plan before the event.</h2>
+        <p>Built for the Hawaiʻi Department of Human Services, HI-EMA, county emergency management agencies and their partners. Public, de-identified, area-level data only. No personal information, no registry, no alerts issued.</p>
+        <div class="actions">
+          <a class="btn primary" href="index.html">Open planning map</a>
+          <a class="btn" href="insights.html">Open insights</a>
+          <button id="replay" class="btn">Back to the top</button>
+        </div>
+        <p class="fine" id="srcLine">Figures: CDC/ATSDR Social Vulnerability Index 2022 (census tracts), county shelter feeds (live), National Weather Service (live). Island totals count census tracts whose centre falls on that island. The background is an illustration, not a hazard map.</p>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/src/home.js"></script>
+</body>
+</html>

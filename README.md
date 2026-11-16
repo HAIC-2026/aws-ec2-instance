@@ -1,0 +1,204 @@
+# AllReady
+
+**Access and functional needs (AFN) mass-care planning for Hawaiʻi.**
+HAIC 2026 · AI-Developed Planning and Improvement Challenge · Department of Human Services, “Enhancing ESF-6 Planning through AI-Supported Insight”.
+
+> AllReady issues no alerts. In an emergency follow official county announcements and call 911.
+
+Team: `aws_ec2_instance` · Licence: [MIT](LICENSE)
+
+DHS asked one question: *how do we make sure the people who need the most help are already in the plan before the disaster?* The information exists, but it is scattered across counties, agencies and federal programs. AllReady reads those public sources live and puts them on one screen: where residents with access and functional needs live, what each hazard would require, what each county's own shelter records can and cannot cover, and who decides what, when. An AI assistant running on the planner's own machine reads the same screen and answers in plain language.
+
+| | |
+|---|---|
+| **Plan** | [docs/PLAN.md](docs/PLAN.md): the framework, DHS's three goals and how each is measured |
+| **Architecture** | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how it is built and why |
+| **Security and privacy** | [docs/SECURITY.md](docs/SECURITY.md): controls, threat model, and the laws and standards it maps to |
+| **Accessibility** | [docs/ACCESSIBILITY.md](docs/ACCESSIBILITY.md): what was checked and what is still open |
+
+## For judges: five minutes
+
+1. Open the **home page**. Every figure under each island is read live; nothing is typed in.
+2. Open the **planning map**. Left: *Layers*, *Alerts*, *Markup*. Bottom: *History* (a year of alerts, replayable) and the *Event clock*. Right: the *Assistant*, with *Inspector* and *Legend* below it.
+3. The chip in the header says **Live**. The event is whatever the National Weather Service has in force for Hawaiʻi right now. If nothing is in force, the app says so and calculates no needs. It does not invent an event.
+4. On the Event clock choose **What-if scenario** and a hazard. Needs, resources and gaps appear, labelled hypothetical everywhere.
+5. Ask the Assistant *“Summarise the map.”* Then draw a circle in *Markup* over a town and ask *“Brief my markup.”*
+6. Open **Insights**: metric tiles, readiness by county, gaps, the **check against past events**, and every data source with a link. *Print brief* gives a paper copy.
+
+## What it does
+
+| DHS asked for | Where | What you get |
+|---|---|---|
+| **1. Population mapping** | Map | Every populated Hawaiʻi census tract scored on CMIST measures (CDC/ATSDR SVI 2022), HHS emPOWER for medical dependence, over tsunami evacuation zones, FEMA flood zones, fire detections and live NWS alerts, with each county's own shelter records. |
+| **2. Resource identification** | Resources and gaps, Insights | A per-hazard model turns residents at risk into shelter demand (with a low–high range) and then into space, accessible space, power, water, meals, dialysis, interpreters, transport and pet capacity, set against what counties have confirmed. A gap that cannot be computed is shown as **unknown** with the reason, never guessed. |
+| **3. Coordinated response** | Event clock, Markup, Assistant | County-led, State-supported decision points with owner, trigger and communication channel; shapes, icons and points of contact placed on the map; a coordinated plan exported as Markdown; an assistant grounded in the on-screen figures. |
+
+### Live by default
+
+Shelter status and alerts are re-read every five minutes. Every source, including census tracts and emPOWER, is re-queried every thirty minutes and on the refresh button. A new county or federal release appears without rebuilding or redeploying anything, and each panel shows when its feeds were last read. Supply that no feed publishes (cots, water, generators) can be entered by hand and is always tagged *manual*.
+
+### Checked against past events
+
+DHS goal 2 asks for estimates validated against past events. AllReady runs its live shelter formula, untuned, over the area each past event affected and shows the result beside the published shelter count, with a link to the source ([`src/backtest.js`](src/backtest.js)). As computed on 16 Nov 2026:
+
+| Event | Published in shelters | Model likely (range) | Observed / assumed turnout |
+|---|---:|---:|---:|
+| Hurricane Lane 2018, Honolulu | 1,114 | 70,707 (28,283–141,414) | 0.11% / 7.0% |
+| Hurricane Lane 2018, Maui County | 381 | 11,534 (4,614–23,068) | 0.23% / 7.0% |
+| Hurricane Lane 2018, Kauaʻi | 17 | 5,146 (2,058–10,292) | 0.023% / 7.0% |
+| Hurricane Lane 2018, Hawaiʻi County | 14 | 14,151 (5,660–28,302) | 0.007% / 7.0% |
+| Maui wildfires 2023 | 1,418 | 9,391 (3,756–18,782) | 3.2% / 21% |
+
+Honest reading: no count falls inside the range, and every miss is on the high side. The hurricane rate describes a direct hit and Lane passed offshore, so those rows size a direct hit; they do not predict a near miss. The factors were not changed after seeing these results. The margin that counts as “reasonable”, and which events to score, are for DHS and the counties to agree. The table gives them observed turnout rates to start from.
+
+## Set it up
+
+You need **Node.js 20.12 or newer** and, for the assistant, **Ollama**. Everything else installs with one command. No accounts and no API keys are needed.
+
+### 1. Install the prerequisites
+
+| | macOS | Windows | Linux |
+|---|---|---|---|
+| Node.js | [nodejs.org](https://nodejs.org) installer, or `brew install node` | [nodejs.org](https://nodejs.org) installer | your package manager, or [nodejs.org](https://nodejs.org) |
+| Ollama | [ollama.com/download](https://ollama.com/download) | [ollama.com/download](https://ollama.com/download) | `curl -fsSL https://ollama.com/install.sh \| sh` |
+
+Check both:
+
+```bash
+node --version
+```
+
+```bash
+ollama --version
+```
+
+### 2. Get the model (one time, about 2 GB)
+
+```bash
+ollama pull llama3.2
+```
+
+Ollama runs in the background after it is installed. If `ollama list` cannot connect, start it:
+
+```bash
+ollama serve
+```
+
+### 3. Install and configure AllReady
+
+```bash
+npm install
+```
+
+```bash
+cp .env.example .env
+```
+
+The defaults in `.env` already point at Ollama on this machine. `.env` is git-ignored and must never be committed.
+
+### 4. Run
+
+```bash
+npm run dev
+```
+
+Open <http://localhost:5173>. The Assistant panel on the map should read **Connected · llama3.2 · Ollama on this machine**. The first question after start-up takes longest while the model reads its instructions; follow-up questions reuse that work.
+
+### 5. Run the production build (with security headers)
+
+```bash
+npm run build
+```
+
+```bash
+npm start
+```
+
+Open <http://localhost:8080>.
+
+### 6. Run the tests
+
+```bash
+npm test
+```
+
+Eleven checks cover input validation, size limits, rate limiting, cross-origin refusal, path traversal, security headers and both model protocols.
+
+### Configuration (`.env`)
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `LLM_BASE_URL` | `http://localhost:11434/v1` | Where the model lives. Ollama by default. |
+| `LLM_MODEL` | `llama3.2` | Model name. |
+| `LLM_API_KEY` | empty | Only for a hosted provider. Stays on the server. |
+| `LLM_API` | `auto` | `auto` detects a local Ollama and uses its native API; `openai` or `ollama` force one. |
+| `LLM_NUM_CTX` | `8192` | Largest context window asked of Ollama. 4096 is used when the prompt fits. |
+| `CHAT_RATE_PER_MIN` | `20` | Assistant requests per visitor per minute. |
+| `ALLOWED_ORIGINS` | empty | Extra origins allowed to call `/api`. Empty means same-origin only. |
+| `TRUST_PROXY` | empty | Set to `1` only behind your own reverse proxy. |
+| `PORT` | `8080` | Port for `npm start`. |
+
+### If something does not work
+
+| You see | Do this |
+|---|---|
+| Assistant: “No model answering” | Start Ollama (`ollama serve`), then reload the page. |
+| Assistant: “…is not pulled” | `ollama pull llama3.2` |
+| Assistant: “Assistant offline — no server here” | The page was opened as a static file. Use `npm run dev` or `npm start`. |
+| Answers are slow | The model shares memory with the browser. Close other apps; 8 GB of RAM is the practical minimum for `llama3.2`. |
+| A weather layer says “rate-limiting” | Open-Meteo's free tier is per network. Wait a few minutes; the last reading stays on screen. |
+| A shelter or alert feed says “unavailable” | That public service is down. The rest of the app keeps working; press refresh later. |
+| Port already in use | Vite picks the next free port and prints it. For `npm start`, set `PORT` in `.env`. |
+
+### Using a different model
+
+Any OpenAI-compatible endpoint works. A larger local model gives better answers if the machine has the memory (`ollama pull <model>`, then set `LLM_MODEL`). For a public deployment that cannot run Ollama, set `LLM_BASE_URL`, `LLM_MODEL` and `LLM_API_KEY` for a hosted provider as a secret on the host; examples are in `.env.example`. Hosted models receive the on-screen snapshot, which is public area-level data plus the planner's markup titles and notes.
+
+## Deploy
+
+- **Any Node host** (Render, Railway, Fly, Azure App Service): build `npm install && npm run build`, start `npm start`, and set the `LLM_*` variables in the host's secret settings, never in the repository.
+- **Static hosting** (GitHub Pages): publish `dist/`. Everything works except the assistant, which says plainly that it is offline.
+
+## Data: all public, de-identified, read live
+
+| Source | Used for | Refresh |
+|---|---|---|
+| CDC/ATSDR Social Vulnerability Index 2022 (ACS 2018–22), census tract | Residents, disability, limited English, no vehicle, age | 30 min; latest federal release |
+| HHS emPOWER public REST service, ZIP and county | Electricity-dependent Medicare beneficiaries, dialysis, oxygen | 30 min; latest HHS release |
+| Honolulu DEM, Hawaiʻi County Civil Defense, Kauaʻi EMA feature services | Shelter sites, status, capacity, accessibility, pets, power | 5 min |
+| National Weather Service `api.weather.gov` | The live event and its polygons | 5 min |
+| Iowa Environmental Mesonet VTEC archive | A year of past alerts for History | on demand |
+| USGS, NASA FIRMS and GIBS, Open-Meteo | Earthquakes, fire detections, imagery, weather | live, daily, 30 min |
+| Hawaiʻi Statewide GIS, FEMA NFHL | Tsunami evacuation zones, flood zones | as published |
+
+**Maui County publishes no machine-readable shelter layer.** AllReady reports that as a finding and does not fill it in. No DHS client data, no personal information and no individual registry are used anywhere.
+
+## Repository layout
+
+```
+home.html  index.html  insights.html      the three pages
+src/
+  planner.js      map page: layers, panels, wiring       live.js        live event from NWS alerts
+  model.js        needs → resources → gaps               backtest.js    check against past events
+  shelters.js     three county schemas → one record      svi.js         census-tract AFN measures
+  scenario.js     hazard phases and decision points      empower.js     medical dependence
+  history.js      alert and weather replay               annotations.js markup: shapes, icons, contacts
+  assistant.js    assistant panel (text-only rendering)  insights.js    dashboard grid and widgets
+  lang.js         seven interface languages              sources.js     the list of every feed
+server/
+  index.js        production server                      llm.js         /api/chat, /api/health
+  static.js       read-only file handler                 security.js    CSP and security headers
+  *.test.js       eleven backend and security checks     mock-llm.mjs   test double for the model
+docs/             plan, architecture, security, accessibility
+.github/          CI: build, test and dependency audit on every push
+```
+
+## How AI was used
+
+AI coding assistance (Claude) was used to write and review code and documents under the author's direction. **No figure in the app comes from a language model.** Every count, estimate and gap is computed by plain, readable code from the public feeds, and can be re-derived by anyone. The assistant only describes those figures: it is given the on-screen snapshot, told to use nothing else, and its output is displayed as text.
+
+## Limits, stated plainly
+
+- Needs figures are estimates from documented planning factors, shown in the app with their sources. They need validation with DHS and the county emergency management agencies. The past-events check shows how far off they are today.
+- The assistant runs on a small local model. It is instructed to quote the snapshot exactly, and it can still be wrong. Check figures against the panels.
+- Interface translations are drafts that need native-speaker review. Hawaiian, Ilocano, Samoan, Chuukese and Marshallese are deliberately not offered until that review exists.
