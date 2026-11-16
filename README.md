@@ -5,7 +5,7 @@ HAIC 2026 · AI-Developed Planning and Improvement Challenge · Department of Hu
 
 ![AllReady planning map: layers and alerts on the left, history timeline below, the assistant and inspector on the right](docs/images/map.png)
 
-*The planning map: Layers, Alerts and Markup on the left, History and the Event clock below, the Assistant and Inspector on the right. Here the assistant is summarising the planner's markup on Oʻahu.*
+*The planning map replaying 23 Oct 2026: shelter readiness by county on the left, the history timeline below, and the assistant and inspector on the right. A what-if scenario and the planner's markup are drawn on the map.*
 
 > AllReady issues no alerts. In an emergency follow official county announcements and call 911.
 
