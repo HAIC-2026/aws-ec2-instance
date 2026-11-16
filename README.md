@@ -5,7 +5,7 @@ HAIC 2026 · AI-Developed Planning and Improvement Challenge · Department of Hu
 
 ![AllReady planning map: layers and alerts on the left, history timeline below, the assistant and inspector on the right](docs/images/map.png)
 
-*The planning map replaying 23 Oct 2026: shelter readiness by county on the left, the history timeline below, and the assistant and inspector on the right. A what-if scenario and the planner's markup are drawn on the map.*
+*The planning map: Layers and Alerts on the left, the History timeline below, and the Assistant and Inspector on the right. A what-if wildfire scenario and the planner's markup are drawn on the map, and the assistant is summarising them.*
 
 > AllReady issues no alerts. In an emergency follow official county announcements and call 911.
 
