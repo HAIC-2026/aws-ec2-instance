@@ -3,6 +3,10 @@
 **Access and functional needs (AFN) mass-care planning for Hawaiʻi.**
 HAIC 2026 · AI-Developed Planning and Improvement Challenge · Department of Human Services, “Enhancing ESF-6 Planning through AI-Supported Insight”.
 
+![AllReady planning map: layers and alerts on the left, history timeline below, the assistant and inspector on the right](docs/images/map.png)
+
+*The planning map: Layers, Alerts and Markup on the left, History and the Event clock below, the Assistant and Inspector on the right. Here the assistant is summarising the planner's markup on Oʻahu.*
+
 > AllReady issues no alerts. In an emergency follow official county announcements and call 911.
 
 Team: `aws_ec2_instance` · Licence: [MIT](LICENSE)
