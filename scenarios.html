@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="AllReady scenario planner: rehearse a hurricane, wildfire, tsunami or flood for any Hawaiʻi county and see the access and functional needs, resources, gaps and decision points.">
+<title>AllReady · Scenarios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="site">
+<a class="skip" href="#main">Skip to the scenario</a>
+<div id="top"></div>
+<div class="s-ribbon" role="status"><div id="ribbon"><span><span class="dot" data-s="off"></span>Reading census tracts, hazard zones, county shelter feeds and HHS emPOWER…</span></div></div>
+
+<main id="main" class="s-main">
+  <section class="s-hero">
+    <div>
+      <p class="s-eyebrow">Scenario planner · what-if, not a forecast</p>
+      <h1>Rehearse the event before it arrives.</h1>
+      <p>Pick a county and a hazard. AllReady counts who lives inside that hazard's published zone, estimates who will need a public shelter and what they will need across the five CMIST areas, sets that against what the county's own records and partner pledges can cover, and walks the decision points hour by hour.</p>
+    </div>
+    <div class="s-steps" aria-label="How to use this page">
+      <div class="s-step"><i>1</i><b>Choose</b>A county and hazard in the grid below.</div>
+      <div class="s-step"><i>2</i><b>Set intensity</b>Near miss, planning standard or worst case.</div>
+      <div class="s-step"><i>3</i><b>Read the gaps</b>Each unknown names who to call.</div>
+      <div class="s-step"><i>4</i><b>Print the brief</b>One page per county and hazard.</div>
+    </div>
+  </section>
+
+  <section class="s-sec" aria-labelledby="mxT">
+    <div class="s-sec-h">
+      <div><h2 id="mxT">Where to plan first</h2><p>People likely to need a public shelter, for every county and hazard, at the intensity you choose. Darker means more. Select a cell to open that scenario.</p></div>
+      <div id="intensity" class="s-seg" role="group" aria-label="Intensity"></div>
+    </div>
+    <div class="s-card"><div id="matrix" class="mx" aria-label="County by hazard matrix"></div><p class="s-src" id="mxSrc"></p></div>
+  </section>
+
+  <div class="s-split s-sec">
+    <aside class="s-stack s-sticky no-print" aria-label="Scenario settings">
+      <div class="s-card">
+        <h3 style="font-size:15px">Scenario</h3>
+        <div class="s-stack" style="margin-top:12px">
+          <label class="s-field">County<select id="county"></select></label>
+          <div class="s-field">Hazard<div id="hazard" class="s-seg" role="group" aria-label="Hazard"></div></div>
+        </div>
+      </div>
+      <div class="s-card">
+        <h3 style="font-size:15px">Assumptions</h3>
+        <p class="s-note" style="margin:4px 0 10px">Moving a slider switches the intensity to Custom. Defaults are the documented planning factors.</p>
+        <div id="sliders" class="s-stack"></div>
+        <button id="reset" class="s-btn sm" type="button" style="margin-top:10px">Reset to planning standard</button>
+      </div>
+      <div class="s-card">
+        <h3 style="font-size:15px">Share and print</h3>
+        <div class="s-stack" style="margin-top:10px">
+          <button id="print" class="s-btn pri" type="button">Print this brief</button>
+          <button id="csv" class="s-btn" type="button">Download resources (CSV)</button>
+          <a id="toMap" class="s-btn" href="index.html">Open on the live map</a>
+          <button id="copy" class="s-btn" type="button">Copy a link to this scenario</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="s-stack" id="detail">
+      <div class="s-card">
+        <div class="s-sec-h" style="margin:0">
+          <div>
+            <p class="s-eyebrow" id="dEye">Scenario</p>
+            <h2 id="dTitle" style="font-size:24px">Loading…</h2>
+            <p id="dBasis"></p>
+          </div>
+          <span class="tag hyp">What-if · not a forecast or alert</span>
+        </div>
+        <div id="kpis" class="kpis" style="margin-top:14px"></div>
+      </div>
+
+      <section aria-labelledby="cmT">
+        <div class="s-sec-h"><div><h2 id="cmT">Needs across the five CMIST areas</h2><p>Residents inside the zone with each barrier, how many are likely to reach a public shelter, what that requires, and who to call.</p></div></div>
+        <div id="cmist" class="s-grid g5"></div>
+      </section>
+
+      <section aria-labelledby="chT" class="s-card">
+        <div class="s-sec-h" style="margin:0 0 6px"><div><h2 id="chT">Shelter demand over the event clock</h2><p id="chSub">How the shelter population builds phase by phase against the spaces the county has on record for that phase.</p></div></div>
+        <div id="chart" class="chart"></div>
+      </section>
+
+      <section aria-labelledby="rsT">
+        <div class="s-sec-h"><div><h2 id="rsT">Resources, supply and gaps</h2><p>Every line says where its supply figure comes from. “Ask” lines are not shortages: nobody has published the figure yet, so the line names who to call.</p></div></div>
+        <div id="resources"></div>
+      </section>
+
+      <section aria-labelledby="cpT">
+        <div class="s-sec-h"><div><h2 id="cpT">Compare intensities</h2><p>The same county and hazard at three intensities. The near-miss column is calibrated to turnout actually counted in a past Hawaiʻi event.</p></div></div>
+        <div id="compare"></div>
+      </section>
+
+      <section aria-labelledby="dpT">
+        <div class="s-sec-h"><div><h2 id="dpT">Decision points</h2><p>County leads, State supports. Each step names who acts, the trigger, how residents are told and in which languages. A template to edit with the county.</p></div></div>
+        <div id="timeline" class="tl"></div>
+      </section>
+
+      <section aria-labelledby="trT">
+        <div class="s-sec-h"><div><h2 id="trT">Census tracts to reach first</h2><p>Tracts with the most residents inside the zone who live with a disability, speak English less than well, or have no vehicle.</p></div></div>
+        <div id="tracts"></div>
+      </section>
+
+      <section aria-labelledby="aiT" class="s-card no-print">
+        <div class="s-sec-h" style="margin:0 0 8px"><div><h2 id="aiT">Ask about this scenario</h2><p>The assistant reads the figures on this page and nothing else. It runs on the planner's own machine through Ollama.</p></div></div>
+        <div id="ai"></div>
+      </section>
+    </div>
+  </div>
+</main>
+<footer class="s-foot"><p id="foot">Sources: 2020 Census blocks (TIGERweb) · Hawaiʻi Statewide GIS hazard zones · CDC/ATSDR SVI 2022 · HHS emPOWER · county shelter feature services (Honolulu DEM, Hawaiʻi County Civil Defense, Kauaʻi EMA) · NWS. Public, de-identified, area-level data only. Supports county plans; issues no alerts.</p></footer>
+<script type="module" src="/src/scenarios.js"></script>
+</body>
+</html>

@@ -31,6 +31,7 @@ import { createAssistant } from "./assistant.js";
 import { liveEvent, insideEvent, manualSupply, setManualSupply, stamp } from "./live.js";
 import { renderShelters, renderResources, renderFactors, renderSources } from "./panels.js";
 import { SOURCES } from "./sources.js";
+import { navLinks } from "./nav.js";
 
 const $ = (i) => document.getElementById(i);
 const BASE = import.meta.env.BASE_URL;
@@ -44,6 +45,7 @@ const store = { get(k, d) { try { const v = JSON.parse(localStorage.getItem(k));
 
 mountThemeToggle($("theme-host"));
 mountLanguage($("lang-host"));
+$("pgnav")?.append(...navLinks("map", "lnk"));
 setInterval(() => ($("clk").textContent = new Date().toLocaleTimeString("en-US", { timeZone: "Pacific/Honolulu", hour12: false }) + " HST"), 1000);
 
 // ---------- colour ramps for data layers ----------
@@ -77,6 +79,9 @@ const hasScn = !!(hz || isl);
 // ---------- persisted state ----------
 const S = Object.assign({ base: "dark", baseAuto: true, on: { terrain: true, roads: true, labels: true, hill: false, nws: true, quake: false, shel: true, afn: true }, op: {}, open: { base: 1, haz: 1, wx: 1, needs: 1, res: 1, arc: 1 }, exag: 1.4, afnMode: "idx", arc: [], scope: "state", mode: "live" }, store.get("allready.v6", {}));
 if (S.mode !== "whatif") S.mode = "live"; // live is the default; a what-if has to be chosen
+// A link from the Scenarios page opens that scenario here: ?whatif=1&hazard=wildfire&county=15009
+if (qs.get("whatif") === "1" && SCENARIOS[hz]) S.mode = "whatif";
+if (/^150(01|03|05|07|09)$/.test(qs.get("county") || "")) S.scope = qs.get("county");
 const READ = { nws: 0, shel: 0, emp: 0, svi: 0 }; // when each live feed was last read
 S.on = Object.assign({ terrain: true, roads: true, labels: true, hill: false, nws: true, shel: true, afn: true }, S.on);
 // Seed the basemap from the theme BEFORE the map is constructed, so a light-theme session
@@ -86,7 +91,11 @@ let dock = null, timeline = null, annotations = null; // created at start-up, af
 const save = () => store.set("allready.v6", { base: S.base, baseAuto: S.baseAuto, on: S.on, op: S.op, open: S.open, exag: S.exag, afnMode: S.afnMode, arc: S.arc, scope: S.scope, mode: S.mode });
 
 // ---------- basemaps (all vector or public-domain imagery, no keys) ----------
-const USGS_IMG = "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}";
+/* Satellite imagery. The USGS National Map tile server was too slow for a live demo: with 3D
+   terrain on, every tile still waiting for imagery showed the AFN layer over a bare background
+   as purple and orange squares. Esri World Imagery is served from a global CDN, needs no key,
+   and has sharper Hawaiʻi coverage; roads and place names still come from OpenStreetMap. */
+const SAT_IMG = "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
 const DEM = "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png";
 const nameExpr = ["coalesce", ["get", "name:latin"], ["get", "name"]];
 function satStyle() {
@@ -94,12 +103,12 @@ function satStyle() {
   return {
     version: 8, glyphs: `${OFM}/fonts/{fontstack}/{range}.pbf`,
     sources: {
-      img: { type: "raster", tiles: [USGS_IMG], tileSize: 256, maxzoom: 16, attribution: "Imagery: USGS National Map" },
+      img: { type: "raster", tiles: [SAT_IMG], tileSize: 256, maxzoom: 19, attribution: "Imagery: Esri, Maxar, Earthstar Geographics, USDA, USGS" },
       osm: { type: "vector", url: `${OFM}/planet`, attribution: "© OpenStreetMap contributors · OpenFreeMap" },
     },
     layers: [
-      { id: "sat-bg", type: "background", paint: { "background-color": "#07101f" } },
-      { id: "sat-img", type: "raster", source: "img" },
+      { id: "sat-bg", type: "background", paint: { "background-color": "#0e2a3a" } }, // ocean-toned while tiles load
+      { id: "sat-img", type: "raster", source: "img", paint: { "raster-fade-duration": 0 } },
       { id: "sat-road-major", type: "line", source: "osm", "source-layer": "transportation", minzoom: 6, filter: ["in", ["get", "class"], ["literal", ["motorway", "trunk", "primary", "secondary", "tertiary"]]], layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#fff", "line-opacity": .85, "line-width": ["interpolate", ["linear"], ["zoom"], 6, .6, 12, 2, 16, 7] } },
       { id: "sat-road-minor", type: "line", source: "osm", "source-layer": "transportation", minzoom: 12, filter: ["in", ["get", "class"], ["literal", ["minor", "service"]]], layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#fff", "line-opacity": .6, "line-width": ["interpolate", ["linear"], ["zoom"], 12, .5, 16, 3.5] } },
       { id: "sat-road-names", type: "symbol", source: "osm", "source-layer": "transportation_name", minzoom: 11, layout: { "symbol-placement": "line", "text-field": nameExpr, "text-font": FALLBACK_FONT, "text-size": 11 }, paint: halo },
@@ -123,7 +132,7 @@ const esriStyle = (base, ref, attribution) => () => ({
   },
   layers: [
     { id: "esri-bg", type: "background", paint: { "background-color": "#6b7280" } }, // neutral while tiles load, in either theme
-    { id: "esri", type: "raster", source: "esri" },
+    { id: "esri", type: "raster", source: "esri", paint: { "raster-fade-duration": 0 } },
     ...(ref ? [{ id: "esri-ref", type: "raster", source: "esriRef" }] : []),
   ],
 });
@@ -137,7 +146,7 @@ const BASES = {
   esriDark: { n: "Esri dark", style: esriStyle("Canvas/World_Dark_Gray_Base", "Canvas/World_Dark_Gray_Reference", ESRI_CRED) },
   esriLight: { n: "Esri light", style: esriStyle("Canvas/World_Light_Gray_Base", "Canvas/World_Light_Gray_Reference", ESRI_CRED) },
   esriSat: { n: "Esri imagery", style: esriStyle("World_Imagery", "Reference/World_Boundaries_and_Places", ESRI_CRED) },
-  sat: { n: "USGS imagery", style: satStyle },
+  sat: { n: "Satellite + labels", style: satStyle },
 };
 
 // ---------- time: driven by the timeline panel (live, or any moment in the past year) ----------
@@ -1014,7 +1023,12 @@ function renderMode() {
   if (!LIVE) {
     box.append(h("b", {}, "No active event"),
       h("p", {}, `No hurricane, tropical storm, tsunami, flood or fire-weather alert is in force for Hawaiʻi.${alerts.length ? ` ${alerts.length} other alert${alerts.length === 1 ? " is" : "s are"} in force (${[...new Set(alerts.map((a) => a.p.event))].slice(0, 3).join(", ")}) — see Alerts.` : ""}`),
-      h("p", { class: "src" }, "Needs and gaps are only calculated for a real event. To plan ahead for one, switch to What-if scenario."));
+      h("p", { class: "src" }, "Needs and gaps are only calculated for a real event. To plan ahead, rehearse one:"),
+      h("div", { class: "sc-rehearse" }, ...Object.entries(SCENARIOS).map(([k, sc]) => {
+        const b = h("button", { type: "button", class: "chipbtn", style: "--hz:" + sc.c }, sc.n);
+        b.onclick = () => { S.mode = "whatif"; save(); clock?.setHazard(k); refreshPanels(); };
+        return b;
+      }), h("a", { class: "chipbtn", href: "scenarios.html" }, "All counties and hazards →")));
     return;
   }
   const until = LIVE.alert.until ? new Date(LIVE.alert.until).toLocaleString("en-US", { timeZone: "Pacific/Honolulu", weekday: "short", hour: "numeric", minute: "2-digit" }) + " HST" : "not stated";
@@ -1159,6 +1173,7 @@ function mapContext() {
       shownFrom: m.from || undefined, shownUntil: m.to || undefined,
       footprint: DATA.afn.features.length ? footprint(m, marks) : "census tracts not loaded yet",
     })),
+    markupNote: marks.length ? "Markup is drawn by the planner for planning. It is not a real or live event." : undefined,
     dataNotes: ["All figures are area-level public data (CDC/ATSDR SVI 2022, HHS emPOWER, county shelter feeds, NWS, USGS).", "Maui County publishes no machine-readable shelter layer.", "emPOWER counts Medicare beneficiaries only, so it is a floor."],
   };
   /* Slow-changing facts first, per-question detail last. A local model keeps the part of the
@@ -1270,6 +1285,8 @@ dock.render(); // let panels created after the dock receive their first onShow
 // A link from the home page (?island=…) only moves the camera. It no longer draws an
 // invented "scenario zone" circle or switches hazard layers on.
 if (isl) map.once("load", () => setTimeout(() => fly(isl), 500));
+// Arriving from the Scenarios page: show the event clock for that scenario.
+if (S.mode === "whatif" && qs.get("whatif") === "1") setTimeout(() => { try { dock.activate("scenario"); } catch {} }, 300);
 renderGroups(); renderLegend();
 
 // The planning feeds do NOT wait for the map. A blocked tile host or a slow basemap used to

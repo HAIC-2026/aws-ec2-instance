@@ -17,6 +17,7 @@ For State production we would add single sign-on with roles, server-side audit l
 | Census-tract measures, emPOWER counts, shelter records, alerts | Fetched from the publisher into the browser's memory | Public |
 | Layout, theme, language, manual supply figures | The planner's browser (`localStorage`) | Low |
 | Markup: shapes, titles, notes | The planner's browser; titles and notes are sent to the model when a question is asked | Low; planner-authored |
+| Partner pledges (organisation, resource, quantity, date, contact role) | The planner's browser; exported as CSV only on request; text that looks like a phone number, email or personal identifier is refused | Organisation-level |
 | Markup points of contact (agency staff) | The planner's browser only; never sent to the server or the model; leaves only by explicit export | Business contact details |
 | Model API key (hosted providers only) | Server environment variable | Secret |
 | Personal data about residents, DHS client records, health records | **Not collected, not stored, not processed** | Not applicable |

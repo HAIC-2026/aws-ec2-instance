@@ -9,10 +9,13 @@
                                    ▲
                                    │ read directly, no credentials, no cookies
 ┌──────────────────────────────────┴───────────────────────────────────┐
-│ BROWSER  (three static pages, vanilla JavaScript, no framework)       │
-│   home.html      live island figures over the terrain animation       │
-│   index.html     planning map: layers, live event, markup, assistant  │
-│   insights.html  metric tiles, gaps, readiness, past-events check     │
+│ BROWSER  (six static pages, vanilla JavaScript, no framework)         │
+│   home.html       live island figures over the terrain animation      │
+│   index.html      live map: layers, live event, markup, assistant     │
+│   scenarios.html  county × hazard planner, CMIST needs, gaps, brief   │
+│   insights.html   metric tiles, gaps, readiness, past-events check    │
+│   roles.html      roles matrix, pathways, partner pledge register     │
+│   method.html     live source check, coverage, factors, questions     │
 │                                                                       │
 │   feeds → normalise → model (needs → resources → gaps) → panels       │
 │   localStorage: layout, theme, language, markup, manual supply        │
@@ -29,7 +32,7 @@
                           └─────────────────┘  or a hosted OpenAI-compatible provider
 ```
 
-There is no database, no user accounts and no stored dataset. Every figure is computed in the browser from feeds read when the page loads.
+There is no database and no user accounts. Every figure is computed in the browser from feeds read when the page loads. The one prepared file is `public/data/exposure.json`: the share of each census tract's residents inside each published hazard zone, built by `scripts/build-exposure.mjs` from 2020 Census blocks and the State's hazard layers (decision 10).
 
 ## Decisions, and why
 
@@ -85,6 +88,23 @@ Each decision records the alternative that was rejected, so a reviewer can disag
 ### 9. One definition of each thing
 
 The AFN measures live in `src/svi.js`, planning factors in `src/model.js`, the source list in `src/sources.js`, the event phases in `src/scenario.js`. Both pages import them, so the map and Insights cannot disagree.
+
+### 10. Hazard zones prepared once, everything else live
+
+- **Chosen:** a zero-dependency Node script tests all 10,169 populated 2020 Census blocks against the State's tsunami, fire-risk and FEMA flood polygons and stores one share per tract and hazard (36 KB).
+- **Rejected:** doing that intersection in the browser on every visit.
+- **Why:** it needs about 12,000 flood polygons; downloading them on every page load would cost megabytes and a long wait, for zones that change only when the State republishes them. The script is re-runnable, the file records its sources and date, and the census counts it is applied to stay live. Block points rather than tract areas count people where they live, not where land is.
+
+### 11. Scenarios is a separate page from the live map
+
+- **Chosen:** a dedicated planning page for county × hazard rehearsal, with the live map kept for what is happening now.
+- **Why:** mixing the two is how a dashboard ends up showing a hypothetical hurricane as if it were real. Scenarios is labelled what-if everywhere, deep-links into the live map's what-if mode, and a real NWS alert on its ribbon points back to the live map.
+
+### 12. Partner capacity stays organisation-level and local
+
+- **Chosen:** a pledge register in the planner's browser, exported and imported as CSV, that refuses anything resembling a phone number, email or personal identifier.
+- **Rejected:** a shared server-side database of partner contacts.
+- **Why:** it is the first rung up from a phone call without creating a store of personal data to secure. A State deployment would move it behind sign-in.
 
 ## Data flow for one question
 

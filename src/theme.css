@@ -617,3 +617,15 @@ h4 { font: 600 11px var(--mono); letter-spacing: .12em; text-transform: uppercas
 .lang .sel { padding: 7px 9px; border-radius: 10px; border: 1px solid var(--line); background: var(--glass-soft, rgba(255,255,255,.06)); color: var(--cream); font: 500 12px var(--sans); cursor: pointer; }
 .lang .sel option { background: #0b0b0d; color: #f6f6f7; }
 
+
+/* page navigation in the map and Insights headers */
+.pgnav { display: flex; gap: 2px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.pgnav::-webkit-scrollbar { display: none; }
+.pgnav .lnk { white-space: nowrap; padding: 6px 9px; border-radius: 8px; }
+.pgnav .lnk[aria-current="page"] { background: var(--surf2); color: var(--cream); }
+@media (max-width: 1280px) { #bar .sub { display: none; } }
+/* "rehearse" buttons when no event is live */
+.sc-rehearse { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chipbtn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--line); background: var(--surf2); color: var(--cream); font: 500 12px var(--sans); cursor: pointer; text-decoration: none; }
+.chipbtn[style*="--hz"]::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--hz); }
+.chipbtn:hover { border-color: var(--cream); }

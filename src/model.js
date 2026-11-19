@@ -86,10 +86,11 @@ const r0 = (n) => Math.max(0, Math.round(n));
  *   { pop, dis, lep, nov, a65, a17, hh, tracts, fips[] }
  * `emp` is the emPOWER result; `ramp` (0..1) is how far through the evacuation we are.
  */
-export function demand({ hazard, area, emp, ramp = 1 }) {
-  const evac = FACTORS.evac[hazard]?.v ?? 0.3;
-  const pub = FACTORS.publicShelter[hazard]?.v ?? 0.2;
-  const up = FACTORS.afnUplift.v;
+export function demand({ hazard, area, emp, ramp = 1, over = {} }) {
+  // `over` lets a scenario planner test other rates without touching the shared factors.
+  const evac = over.evac ?? FACTORS.evac[hazard]?.v ?? 0.3;
+  const pub = over.pub ?? FACTORS.publicShelter[hazard]?.v ?? 0.2;
+  const up = over.up ?? FACTORS.afnUplift.v;
 
   const atRisk = area.pop || 0;
   const evacuating = atRisk * evac * ramp;
@@ -121,7 +122,7 @@ export function demand({ hazard, area, emp, ramp = 1 }) {
   const petHH = households * evacShare * pub * FACTORS.petHouseholds.v;
 
   return {
-    hazard, ramp,
+    hazard, ramp, evacRate: evac, pubRate: pub, uplift: up,
     atRisk: r0(atRisk), evacuating: r0(evacuating), shelterPop: r0(shelterPop),
     shelterLow: r0(shelterPop * SHELTER_RANGE.low), shelterHigh: r0(shelterPop * SHELTER_RANGE.high),
     tracts: area.tracts || 0,
@@ -205,7 +206,7 @@ export function resources(d, sup, manual = {}) {
     sup.capacityUnknownSites ? `${sup.capacityUnknownSites} of ${sup.sites} shelters publish no capacity` : "");
 
   add("people", "Shelter spaces (people)", "—", p, "people",
-    `${(F.evac[d.hazard]?.v * 100).toFixed(0)}% evacuate × ${(F.publicShelter[d.hazard]?.v * 100).toFixed(0)}% to public shelter`,
+    `${+(d.evacRate * 100).toFixed(1)}% evacuate × ${+(d.pubRate * 100).toFixed(1)}% to public shelter`,
     sup.spaces,
     sup.capacityUnknownSites ? `supply understated: ${sup.capacityUnknownSites} sites without a capacity figure` : "");
 
@@ -299,8 +300,8 @@ export function dataActions(score) {
 }
 
 /** One call: area + shelters + emPOWER in, a complete plan out. */
-export function plan({ hazard, area, emp, shelters, ramp = 1, roles = null, fipsFilter = null, manual = {} }) {
-  const d = demand({ hazard, area, emp, ramp });
+export function plan({ hazard, area, emp, shelters, ramp = 1, roles = null, fipsFilter = null, manual = {}, over = {} }) {
+  const d = demand({ hazard, area, emp, ramp, over });
   const s = supply({ shelters, hazard, roles, fipsFilter });
   return { demand: d, supply: s, resources: resources(d, s, manual) };
 }

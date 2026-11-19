@@ -26,7 +26,7 @@ export const OWNERS = {
 };
 
 /** Languages the state's AFN communication has to cover, per the challenge brief. */
-const LANGS_ALL = ["English", "ʻŌlelo Hawaiʻi", "Ilokano", "Tagalog", "Chuukese", "Marshallese", "Japanese", "Korean", "Chinese", "Vietnamese", "Spanish", "Samoan"];
+export const LANGS_ALL = ["English", "ʻŌlelo Hawaiʻi", "Ilokano", "Tagalog", "Chuukese", "Marshallese", "Japanese", "Korean", "Chinese", "Vietnamese", "Spanish", "Samoan"];
 const LANGS_CORE = ["English", "Ilokano", "Tagalog", "Chuukese", "Marshallese", "Spanish"];
 
 const dp = (t, owner, action, trigger, comms = null, afn = false) => ({ t, owner, action, trigger, comms, afn });

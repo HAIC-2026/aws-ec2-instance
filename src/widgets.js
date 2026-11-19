@@ -68,6 +68,10 @@ const SVI = "CDC/ATSDR SVI 2022 · ACS 2018–22", COUNTY = "County shelter feed
 const noFeed = (D, a) => (a === "15009" ? "Maui publishes no shelter feed" : a === "state" ? "Maui not included: no feed" : "");
 const share = (k) => (D, a) => { const p = tsum(D, a, "pop"); return { v: p ? (tsum(D, a, k) / p) * 100 : null }; };
 const emp = (k) => (D, a) => { if (!D.emp) return { v: null, note: "emPOWER not loaded" }; const rows = Object.values(D.emp.byFips).filter((c) => a === "state" || c.fips === a); return { v: rows.reduce((t, c) => t + (c[k] || 0), 0), note: "Medicare only — a floor" }; };
+/* One colour per domain, the same on every page: shelters teal, people blue, access and
+   functional needs violet, medical coral, hazards amber. Colour is never the only signal. */
+const TONE = (k) => (/^shelter/.test(k) ? "shel" : /afn|disab|lep|limited|vehicle|age|elder|older/.test(k) ? "afn" : /power|dialysis|oxygen|empower|medical/.test(k) ? "med" : /alert|quake|fire|hazard/.test(k) ? "haz" : /pop|resident|tract|household/.test(k) ? "pop" : "neutral");
+
 export const METRICS = {
   manual: { n: "Manual value", stateOnly: true, src: "Entered by hand — not from a feed", get: () => ({ v: null }) },
   shelters_open: { n: "Shelters open now", src: COUNTY, get: (D, a) => ({ v: sh(D, a).filter((x) => x.status === "open").length, note: noFeed(D, a) || `${sh(D, a).filter((x) => x.status !== "unknown").length} sites report a status` }) },
@@ -136,6 +140,7 @@ export const WIDGETS = {
         row.append(s3); host.append(box, row); return;
       }
       const box = el("div", "tile");
+      box.dataset.tone = TONE(key);
       const v = el("b", "tile-v", r.v == null ? "—" : typeof r.v === "number" ? r.v.toLocaleString("en-US", { maximumFractionDigits: m.dp ?? 0 }) + (m.unit || "") : r.v);
       box.append(v, el("span", "tile-n", m.n));
       if (r.note) box.append(el("em", "tile-note", r.note));
@@ -251,11 +256,11 @@ export const WIDGETS = {
         // No event in force: show who lives here — the real resident counts — not a modelled demand.
         const e = ctx.emp ? Object.values(ctx.emp.byFips).filter((c) => ctx.area.fips.includes(c.fips)).reduce((t, c) => t + (c.dme || 0), 0) : null;
         const rows = [["C", "Communication", ctx.area.lep, "Residents who speak English less than well"], ["M", "Medical", e, "Medicare beneficiaries on electricity-dependent equipment (a floor)"], ["I", "Independence", ctx.area.dis, "Residents living with a disability"], ["S", "Safety & support", ctx.area.a65 + ctx.area.a17, "Residents 65+ and under 18"], ["T", "Transportation", ctx.area.nov, "Households with no vehicle"]];
-        for (const [k, n, v, what] of rows) { const d = el("div", "cm"); d.append(el("i", "cml", k), el("b", null, n), el("span", null, fmt(v)), el("p", null, what)); host.append(d); }
+        for (const [k, n, v, what] of rows) { const d = el("div", "cm"); d.dataset.k = k; d.append(el("i", "cml", k), el("b", null, n), el("span", null, fmt(v)), el("p", null, what)); host.append(d); }
         return host.append(el("p", "src", `Residents of ${ctx.scopeName} — not an event estimate. CDC/ATSDR SVI 2022; M from HHS emPOWER.`));
       }
       for (const [k, v] of Object.entries(ctx.plan.demand.cmist)) {
-        const d = el("div", "cm");
+        const d = el("div", "cm"); d.dataset.k = k;
         d.append(el("i", "cml", k));
         d.append(el("b", null, v.n));
         d.append(el("span", null, fmt(v.v)));

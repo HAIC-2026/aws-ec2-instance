@@ -13,6 +13,7 @@
 import "./insights.css";
 import { mountThemeToggle } from "./theme.js";
 import { mountLanguage } from "./lang.js";
+import { navLinks } from "./nav.js";
 import { fetchSVI, rankTracts, areaOf, COUNTY_NAMES } from "./svi.js";
 import { loadShelters, readiness } from "./shelters.js";
 import { loadEmpower, LINES } from "./empower.js";
@@ -30,6 +31,7 @@ const store = {
 
 mountThemeToggle($("theme-host"));
 mountLanguage($("lang-host"));
+$("pgnav")?.append(...navLinks("insights", "lnk"));
 setInterval(() => ($("clk").textContent = new Date().toLocaleTimeString("en-US", { timeZone: "Pacific/Honolulu", hour12: false }) + " HST"), 1000);
 
 /* ---------------- state ---------------- */
@@ -139,7 +141,7 @@ function currentContext() {
       })
     : null;
   const modeLabel = live ? (ev ? `Live · ${ev.label}` : "Live · no active event") : `What-if · ${sc.n} · ${phase.n}`;
-  const idle = live && !ev ? "No hurricane, tsunami, flood or fire-weather alert is in force for Hawaiʻi, so no needs or gaps are calculated. Pick a What-if in the Event box to plan ahead." : "No census tracts fall inside this event for the selected area.";
+  const idle = live && !ev ? "No hurricane, tsunami, flood or fire-weather alert is in force for Hawaiʻi, so no needs or gaps are calculated. Pick a What-if in the Event box, or open Scenarios to compare every county and hazard." : "No census tracts fall inside this event for the selected area.";
 
   const scopeName = SCOPES.find(([k]) => k === S.scope)?.[1] || "All of Hawaiʻi";
   const shelterScope = DATA.shelters.filter((x) => S.scope === "state" || x.fips === S.scope);

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="AllReady data and method: every source with its owner, freshness and a live check, coverage against DHS goals, planning factors, the check against past events, and open questions for DHS.">
+<title>AllReady · Data & method</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="site">
+<a class="skip" href="#main">Skip to the content</a>
+<div id="top"></div>
+<div class="s-ribbon" role="status"><div id="ribbon"><span><span class="dot" data-s="off"></span>Checking every source now…</span></div></div>
+<main id="main" class="s-main">
+  <section class="s-hero">
+    <div>
+      <p class="s-eyebrow">Data & method · how every number is made</p>
+      <h1>Trace any figure back to its source.</h1>
+      <p>Every number in AllReady comes from a public, de-identified source read by plain code a reviewer can re-run. This page checks each source live, shows how far the data reaches against the DHS goals, lists every planning factor, and asks DHS the questions the data cannot answer.</p>
+    </div>
+    <div class="s-steps">
+      <div class="s-step"><i>Live</i><b>Source check</b>Each feed tested from your browser now.</div>
+      <div class="s-step"><i>Goals</i><b>Coverage</b>Tracts, hazards, counties, CMIST.</div>
+      <div class="s-step"><i>Check</i><b>Past events</b>The model against real counts.</div>
+      <div class="s-step"><i>Ask</i><b>Questions for DHS</b>What only DHS can answer.</div>
+    </div>
+  </section>
+
+  <section class="s-sec" aria-labelledby="sT">
+    <div class="s-sec-h"><div><h2 id="sT">Sources, checked live</h2><p>The ladder level says how a planner gets the data: 3 a service that answers by area, 2 a file at a stable address, 1 published on a schedule as a page or PDF, 0 a phone call. Moving a source up one rung is the cheapest improvement DHS can make.</p></div><button id="recheck" class="s-btn sm no-print" type="button">Check again</button></div>
+    <div id="sources"></div>
+  </section>
+
+  <section class="s-sec" aria-labelledby="cT">
+    <div class="s-sec-h"><div><h2 id="cT">Coverage against the DHS goals</h2><p>Goal 1 asks for hazard-specific AFN maps for every county and 100% of census tracts. These are the residents inside each published hazard zone, computed from 2020 Census blocks.</p></div></div>
+    <div id="goals" class="kpis"></div>
+    <div id="coverage" style="margin-top:14px"></div>
+  </section>
+
+  <section class="s-sec" aria-labelledby="bT">
+    <div class="s-sec-h"><div><h2 id="bT">Checked against past events</h2><p>Goal 2 asks for estimates validated against past events. The same formula, untuned, on the area each event affected, beside the published shelter count.</p></div></div>
+    <div id="backtest"></div>
+  </section>
+
+  <section class="s-sec" aria-labelledby="fT">
+    <div class="s-sec-h"><div><h2 id="fT">Planning factors</h2><p>“Published” factors come from a named standard; “assumption” factors are ours and are the first things to agree with DHS and the counties.</p></div></div>
+    <div id="factors"></div>
+  </section>
+
+  <section class="s-sec" aria-labelledby="qT">
+    <div class="s-sec-h"><div><h2 id="qT">Questions for DHS</h2><p>What the public data cannot settle. Each answer would change a number or a role in this tool.</p></div></div>
+    <ol id="questions" class="s-card" style="margin:0;padding:18px 18px 18px 40px;display:grid;gap:10px"></ol>
+  </section>
+
+  <section class="s-sec" aria-labelledby="lT">
+    <div class="s-sec-h"><div><h2 id="lT">Limits, stated plainly</h2></div></div>
+    <ul id="limits" class="s-card" style="margin:0;padding:18px 18px 18px 36px;display:grid;gap:8px;font-size:14px"></ul>
+  </section>
+</main>
+<footer class="s-foot"><p>Public, de-identified, area-level data only. No personal information, no registry, no tracking. Method and code: <a href="https://github.com/HAIC-2026/aws-ec2-instance">github.com/HAIC-2026/aws-ec2-instance</a>.</p></footer>
+<script type="module" src="/src/method.js"></script>
+</body>
+</html>

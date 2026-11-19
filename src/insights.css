@@ -169,3 +169,26 @@ html, body.ins-body { overflow: visible; overflow-y: auto; height: auto; min-hei
   * { color: #000 !important; text-shadow: none !important; }
   .q-t th { position: static; background: #eee; backdrop-filter: none; }
 }
+
+/* ---------------- colour layer: one colour per domain, shared with the planning pages ---------------- */
+.ins-body { --tn-shel: #0d8f8a; --tn-pop: #2a6fb0; --tn-afn: #7a55c4; --tn-med: #d0473a; --tn-haz: #c98512;
+  --c-C: #2a6fb0; --c-M: #c0392b; --c-I: #6f4fb0; --c-S: #a8700c; --c-T: #22804f; }
+[data-theme="dark"] .ins-body { --tn-shel: #3fc9c0; --tn-pop: #6eaee8; --tn-afn: #b39cf0; --tn-med: #ff8a7a; --tn-haz: #f0bd5c;
+  --c-C: #6eaee8; --c-M: #ff8a7a; --c-I: #b39cf0; --c-S: #f0bd5c; --c-T: #6fd39a; }
+.card:has(.tile[data-tone]) { background: linear-gradient(150deg, color-mix(in srgb, var(--tn) 16%, var(--glass)) 0%, var(--glass) 70%); border-color: color-mix(in srgb, var(--tn) 30%, var(--line2)); }
+.card:has(.tile[data-tone="shel"]) { --tn: var(--tn-shel); } .card:has(.tile[data-tone="pop"]) { --tn: var(--tn-pop); }
+.card:has(.tile[data-tone="afn"]) { --tn: var(--tn-afn); } .card:has(.tile[data-tone="med"]) { --tn: var(--tn-med); }
+.card:has(.tile[data-tone="haz"]) { --tn: var(--tn-haz); } .card:has(.tile[data-tone="neutral"]) { --tn: var(--faint); }
+.tile[data-tone] .tile-v { color: var(--tn, var(--cream)); }
+.tile[data-tone]::before { content: ""; display: block; width: 26px; height: 4px; border-radius: 4px; background: var(--tn); margin-bottom: 8px; }
+.cm[data-k] .cml { background: var(--c-x); border-color: var(--c-x) !important; color: #fff !important; }
+.cm[data-k="C"] { --c-x: var(--c-C); } .cm[data-k="M"] { --c-x: var(--c-M); } .cm[data-k="I"] { --c-x: var(--c-I); }
+.cm[data-k="S"] { --c-x: var(--c-S); } .cm[data-k="T"] { --c-x: var(--c-T); }
+.cm[data-k] > span { color: var(--c-x); }
+/* page navigation */
+#bar .pgnav .lnk { font-size: 12.5px; }
+.ins-body #bar .sub { display: none; }
+.ins-body #bar .btn { white-space: nowrap; }
+.ins-body #bar .clock i { display: none; }
+@media (max-width: 1500px) { .ins-body .sb > span { display: none; } }
+.ins-body .sb .sel { max-width: 170px; }

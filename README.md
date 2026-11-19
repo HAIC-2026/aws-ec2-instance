@@ -20,22 +20,32 @@ DHS asked one question: *how do we make sure the people who need the most help a
 | **Security and privacy** | [docs/SECURITY.md](docs/SECURITY.md): controls, threat model, and the laws and standards it maps to |
 | **Accessibility** | [docs/ACCESSIBILITY.md](docs/ACCESSIBILITY.md): what was checked and what is still open |
 
+## Six pages, one workflow
+
+| Page | The question it answers | What a planner does there |
+|---|---|---|
+| **Home** (`home.html`) | What is this and what is true today? | Live figures per island, read from the feeds as the page opens. |
+| **Live map** (`index.html`) | What is happening now, and where? | Live NWS event, AFN census tracts, shelters, hazard layers, a year of alert history, map markup, and the assistant. |
+| **Scenarios** (`scenarios.html`) | If this hazard hits this county, who needs what? | A county × hazard grid; residents inside each published hazard zone; needs across all five CMIST areas; supply and gaps with *who to call*; shelter demand phase by phase against capacity; decision points; a printable brief. |
+| **Insights** (`insights.html`) | So what, across the state? | A dashboard of live metric tiles, county data readiness, gaps, an AI summary and the check against past events. |
+| **Partners & roles** (`roles.html`) | Who meets each need, and how are residents told? | Roles matrix, communication pathways, and a register of partner pledges that the Scenarios page counts against each gap. |
+| **Data & method** (`method.html`) | Can I trust this number? | Every source checked live from the browser, coverage against the DHS goals, every planning factor, the past-events check, and questions for DHS. |
+
 ## For judges: five minutes
 
-1. Open the **home page**. Every figure under each island is read live; nothing is typed in.
-2. Open the **planning map**. Left: *Layers*, *Alerts*, *Markup*. Bottom: *History* (a year of alerts, replayable) and the *Event clock*. Right: the *Assistant*, with *Inspector* and *Legend* below it.
-3. The chip in the header says **Live**. The event is whatever the National Weather Service has in force for Hawaiʻi right now. If nothing is in force, the app says so and calculates no needs. It does not invent an event.
-4. On the Event clock choose **What-if scenario** and a hazard. Needs, resources and gaps appear, labelled hypothetical everywhere.
-5. Ask the Assistant *“Summarise the map.”* Then draw a circle in *Markup* over a town and ask *“Brief my markup.”*
-6. Open **Insights**: metric tiles, readiness by county, gaps, the **check against past events**, and every data source with a link. *Print brief* gives a paper copy.
+1. **Home.** Every figure under each island is read live; nothing is typed in.
+2. **Scenarios.** The grid shows people likely to need a public shelter for every county and hazard. Pick *Maui · Wildfire*: residents inside the State's High fire-risk areas, the five CMIST needs, the gaps, and for every unknown the organisation to call. Switch intensity to *Near miss*, which is calibrated to turnout actually counted in a past Hawaiʻi event. *Print this brief* gives one page.
+3. **Live map.** The chip says **Live**: the event is whatever the National Weather Service has in force. With nothing in force the app calculates no needs and offers to rehearse one instead. *Open on the live map* from Scenarios lands on that county with the event clock open.
+4. Ask the **Assistant** *“Summarise the map”*, or on Scenarios *“Unknowns and who to call”*. It runs on the planner's own machine and uses only the figures on screen.
+5. **Data & method.** Every source is checked live from your browser, with coverage against each DHS goal and the questions only DHS can answer.
 
 ## What it does
 
 | DHS asked for | Where | What you get |
 |---|---|---|
-| **1. Population mapping** | Map | Every populated Hawaiʻi census tract scored on CMIST measures (CDC/ATSDR SVI 2022), HHS emPOWER for medical dependence, over tsunami evacuation zones, FEMA flood zones, fire detections and live NWS alerts, with each county's own shelter records. |
-| **2. Resource identification** | Resources and gaps, Insights | A per-hazard model turns residents at risk into shelter demand (with a low–high range) and then into space, accessible space, power, water, meals, dialysis, interpreters, transport and pet capacity, set against what counties have confirmed. A gap that cannot be computed is shown as **unknown** with the reason, never guessed. |
-| **3. Coordinated response** | Event clock, Markup, Assistant | County-led, State-supported decision points with owner, trigger and communication channel; shapes, icons and points of contact placed on the map; a coordinated plan exported as Markdown; an assistant grounded in the on-screen figures. |
+| **1. Population mapping** | Scenarios, Live map, Data & method | All 432 populated 2020 census tracts, with the residents inside each hazard's published zone (tsunami evacuation zone, High fire-risk area, FEMA flood zone, whole island for hurricane) from 2020 Census blocks, scored on CMIST measures (CDC/ATSDR SVI 2022) and HHS emPOWER, beside each county's own shelter records. |
+| **2. Resource identification** | Scenarios, Insights | A per-hazard model turns residents in the zone into shelter demand (with a low–high range and three intensities) and then into space, accessible space, power, water, meals, dialysis, interpreters, transport and pet capacity, set against what counties publish and partners pledge. A gap that cannot be computed is shown as **ask** with the organisation that holds the answer, never guessed. |
+| **3. Coordinated response** | Scenarios, Partners & roles, Live map | County-led, State-supported decision points with owner, trigger, channel and languages; a roles matrix; communication pathways; a partner pledge register; shapes, icons and points of contact on the map; printable briefs; an assistant grounded in the on-screen figures. |
 
 ### Live by default
 
@@ -163,6 +173,14 @@ Any OpenAI-compatible endpoint works. A larger local model gives better answers 
 - **Any Node host** (Render, Railway, Fly, Azure App Service): build `npm install && npm run build`, start `npm start`, and set the `LLM_*` variables in the host's secret settings, never in the repository.
 - **Static hosting** (GitHub Pages): publish `dist/`. Everything works except the assistant, which says plainly that it is offline.
 
+## Who lives inside each hazard zone
+
+`scripts/build-exposure.mjs` tests every populated 2020 Census block (10,169 blocks, 1,455,271 residents, which is the 2020 Census count for Hawaiʻi exactly) against the zones the Hawaiʻi Statewide GIS Program publishes, and writes the share of each tract's residents inside each zone to `public/data/exposure.json`. The app applies that share to each tract's current SVI counts. Hazard zones change rarely; re-run the script when the State republishes them:
+
+```bash
+node scripts/build-exposure.mjs
+```
+
 ## Data: all public, de-identified, read live
 
 | Source | Used for | Refresh |
@@ -173,14 +191,15 @@ Any OpenAI-compatible endpoint works. A larger local model gives better answers 
 | National Weather Service `api.weather.gov` | The live event and its polygons | 5 min |
 | Iowa Environmental Mesonet VTEC archive | A year of past alerts for History | on demand |
 | USGS, NASA FIRMS and GIBS, Open-Meteo | Earthquakes, fire detections, imagery, weather | live, daily, 30 min |
-| Hawaiʻi Statewide GIS, FEMA NFHL | Tsunami evacuation zones, flood zones | as published |
+| Hawaiʻi Statewide GIS, FEMA NFHL | Tsunami evacuation zones, fire risk areas, flood zones | as published |
+| U.S. Census Bureau TIGERweb, 2020 Census blocks | Where residents live inside each hazard zone | decennial; `scripts/build-exposure.mjs` |
 
 **Maui County publishes no machine-readable shelter layer.** AllReady reports that as a finding and does not fill it in. No DHS client data, no personal information and no individual registry are used anywhere.
 
 ## Repository layout
 
 ```
-home.html  index.html  insights.html      the three pages
+home.html index.html scenarios.html insights.html roles.html method.html   the six pages
 src/
   planner.js      map page: layers, panels, wiring       live.js        live event from NWS alerts
   model.js        needs → resources → gaps               backtest.js    check against past events
@@ -189,10 +208,15 @@ src/
   history.js      alert and weather replay               annotations.js markup: shapes, icons, contacts
   assistant.js    assistant panel (text-only rendering)  insights.js    dashboard grid and widgets
   lang.js         seven interface languages              sources.js     the list of every feed
+  scenarios.js    scenario planner                       exposure.js    residents inside each hazard zone
+  roles.js        roles, pathways, partner register      match.js       who to call; pledge register
+  method.js       live source check, coverage, factors   nav.js         navigation shared by every page
+  site.css        design system for the planning pages
 server/
   index.js        production server                      llm.js         /api/chat, /api/health
   static.js       read-only file handler                 security.js    CSP and security headers
   *.test.js       eleven backend and security checks     mock-llm.mjs   test double for the model
+scripts/build-exposure.mjs                 2020 Census blocks × State hazard zones → public/data/exposure.json
 docs/             plan, architecture, security, accessibility
 .github/          CI: build, test and dependency audit on every push
 ```
