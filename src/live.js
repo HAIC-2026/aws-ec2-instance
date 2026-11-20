@@ -11,6 +11,7 @@
    not open shelters. */
 
 import { SCENARIOS } from "./scenario.js";
+import { fetchT } from "./net.js";
 
 const KIND = [
   ["hurricane", /hurricane|tropical storm|typhoon|storm surge/i],
@@ -59,9 +60,9 @@ export function insideEvent(ev) {
 /** Active Hawaiʻi alerts with polygons resolved (alerts issued by zone carry no geometry). */
 export async function loadLiveAlerts() {
   const H = { headers: { Accept: "application/geo+json" } };
-  const fs = (await (await fetch("https://api.weather.gov/alerts/active?area=HI", H)).json()).features || [];
+  const fs = (await (await fetchT("https://api.weather.gov/alerts/active?area=HI", H)).json()).features || [];
   const cache = new Map();
-  const zone = async (u) => { if (!cache.has(u)) cache.set(u, fetch(u, H).then((r) => (r.ok ? r.json() : null)).then((j) => j?.geometry || null).catch(() => null)); return cache.get(u); };
+  const zone = async (u) => { if (!cache.has(u)) cache.set(u, fetchT(u, H).then((r) => (r.ok ? r.json() : null)).then((j) => j?.geometry || null).catch(() => null)); return cache.get(u); };
   return Promise.all(fs.map(async (f) => {
     let g = f.geometry;
     if (!g) {

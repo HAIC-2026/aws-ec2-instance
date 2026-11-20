@@ -3,11 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="./boot.js"></script>
+<meta name="color-scheme" content="light dark">
+<style>/* first paint: page colour, no unstyled flash, smooth page-to-page */
+html{background:#e9e9ec}html[data-theme=dark]{background:#050506}
+@view-transition{navigation:auto}
+@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
+::view-transition-old(root),::view-transition-new(root){animation-duration:.16s}
+body{opacity:0;animation:ar-show 0s 1s forwards}
+@keyframes ar-show{to{opacity:1}}
+</style>
 <meta name="description" content="AllReady: an ESF-6 planning aid for access and functional needs in Hawaiʻi. Public, de-identified, area-level data only.">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<title>AllReady · Planning map</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>AllReady · Live map</title>
+<link rel="stylesheet" href="./fonts/fonts.css">
 </head>
 <body>
 <a class="skip" href="#ws">Skip to the workspace</a>
@@ -34,7 +43,7 @@
 
 <main id="ws" aria-label="Planning workspace">
   <div id="center">
-    <div id="map" role="application" aria-label="Planning map of Hawaiʻi"></div>
+    <div id="map" role="application" aria-label="Live map of Hawaiʻi"></div>
     <div id="nogl" hidden><p>This browser could not start WebGL, which the map needs. Try another browser or turn on hardware acceleration.</p></div>
     <div class="ctrl" id="mapctl" role="toolbar" aria-label="Map view">
       <button type="button" id="vHi" data-i="hiBtn">Hawaiʻi</button>
@@ -71,6 +80,7 @@
 
   <div data-src="alerts">
     <div class="tools"><span id="alertSrc" class="src">Checking National Weather Service…</span><button id="alertRefresh" class="link" type="button" data-i="refresh">Refresh</button></div>
+    <div id="olBox" class="olbox" aria-live="polite"></div>
     <ul id="alertList" class="scroll alerts"></ul>
   </div>
 

@@ -25,19 +25,21 @@ DHS asked one question: *how do we make sure the people who need the most help a
 | Page | The question it answers | What a planner does there |
 |---|---|---|
 | **Home** (`home.html`) | What is this and what is true today? | Live figures per island, read from the feeds as the page opens. |
-| **Live map** (`index.html`) | What is happening now, and where? | Live NWS event, AFN census tracts, shelters, hazard layers, a year of alert history, map markup, and the assistant. |
-| **Event planner** (`scenarios.html`) | If this hazard hits this county, who needs what? | A county × hazard grid; residents inside each published hazard zone; needs across all five CMIST areas; supply and gaps with *who to call*; shelter demand phase by phase against capacity; decision points; a printable brief. |
-| **Insights** (`insights.html`) | So what, across the state? | A dashboard of live metric tiles, county data readiness, gaps, an AI summary and the check against past events. |
+| **Live map** (`index.html`) | What is happening now, and where? | Live NWS event, the model's 3-day warning outlook, AFN census tracts, shelters, hazard layers that explain themselves when clicked, a year of alert history, map markup, and the assistant. |
+| **Event planner** (`scenarios.html`) | If this hazard hits this county, who needs what? | A 7-day warning outlook from a trained model; a county × hazard grid; residents inside each published hazard zone; needs across all five CMIST areas; supply and gaps with *who to call*; shelter demand phase by phase against capacity; decision points; a printable brief. |
 | **Coordination** (`roles.html`) | Who meets each need, and how are residents told? | Roles matrix, communication pathways, and a register of partner commitments that the Event planner counts against each gap. |
-| **Data health** (`method.html`) | Can I trust this number? | Every source checked live from the browser, coverage against the DHS goals, every planning factor, the past-events check, and questions for DHS. |
+| **Insights** (`insights.html`) | So what, across the state? | A dashboard of live metric tiles, county data readiness, gaps, an AI summary and the check against past events. |
+| **Data health** (`method.html`) | Can I trust this number? | Every source checked live from the browser, coverage against the DHS goals, the past-events check, the warning-outlook model's test scores, and every planning factor. |
 
 ## For judges: five minutes
 
-1. **Home.** Every figure under each island is read live; nothing is typed in.
-2. **Event planner.** The grid shows people likely to need a public shelter for every county and hazard. Pick *Maui · Wildfire*: residents inside the State's High fire-risk areas, the five CMIST needs, the gaps, and for every unknown the organisation to call. Switch intensity to *Near miss*, which is calibrated to turnout actually counted in a past Hawaiʻi event. *Print brief* gives one page.
-3. **Live map.** The chip says **Live**: the event is whatever the National Weather Service has in force. With nothing in force the app calculates no needs and offers to rehearse one instead. *Open on the live map* from the Event planner lands on that county with the event clock open.
+Every page opens with a short guide (what the page is for, and how to use it in four steps), and the **?** button in the top bar explains every term (AFN, CMIST, SVI, emPOWER, ESF-6…).
+
+1. **Home.** Every figure under each island is read live; nothing is typed in. The three cards are the three parts of the DHS framework, each linked to the page that does it.
+2. **Event planner.** Pick a county and hazard, or **start from a past event** (Hurricane Lane 2018, the 2023 Maui wildfires) to rehearse a repeat at the turnout counted then. The grid shows people likely to need a public shelter for every county and hazard. Pick *Maui · Wildfire*: residents inside the State's High fire-risk areas, the five CMIST needs, the gaps, and for every unknown the organisation to call. Switch intensity to *Near miss*, which is calibrated to turnout actually counted in a past Hawaiʻi event. *Print brief* gives one page. The **7-day warning outlook** on the right is a trained model: click any percentage to rehearse that county and hazard.
+3. **Live map.** The Event planner and the Live map share one what-if: the map opens on the same county and hazard and draws the census tracts with residents inside that hazard's zone, and a change on either page reaches the other, even in another tab. The chip says **Live**: the event is whatever the National Weather Service has in force. With nothing in force the app calculates no needs and offers to rehearse one instead. *Open on the live map* from the Event planner lands on that county with the event clock open.
 4. Ask the **Assistant** *“Summarise the map”*, or in the Event planner *“Unknowns and who confirms them”*. It runs on the planner's own machine and uses only the figures on screen.
-5. **Data health.** Every source is checked live from your browser, with coverage against each DHS goal and the questions only DHS can answer.
+5. **Data health.** Every source is checked live from your browser, with coverage against each DHS goal, the past-events check, and how the warning outlook scored on 2025–2026 days it never saw.
 
 ## What it does
 
@@ -45,6 +47,7 @@ DHS asked one question: *how do we make sure the people who need the most help a
 |---|---|---|
 | **1. Population mapping** | Event planner, Live map, Data health | All 432 populated 2020 census tracts, with the residents inside each hazard's published zone (tsunami evacuation zone, High fire-risk area, FEMA flood zone, whole island for hurricane) from 2020 Census blocks, scored on CMIST measures (CDC/ATSDR SVI 2022) and HHS emPOWER, beside each county's own shelter records. |
 | **2. Resource identification** | Event planner, Insights | A per-hazard model turns residents in the zone into shelter demand (with a low–high range and three intensities) and then into space, accessible space, power, water, meals, dialysis, interpreters, transport and pet capacity, set against what counties publish and partners pledge. A gap that cannot be computed is shown as **ask** with the organisation that holds the answer, never guessed. |
+| **Faster path from a forecast to a plan** | Event planner, Live map, Data health | A machine-learning outlook of the warnings NWS is likely to issue in each county over the next 7 days, trained on every NWS Honolulu warning since 2022 and tested on days it never saw; one click turns a likely warning into a rehearsed county plan. |
 | **3. Coordinated response** | Event planner, Coordination, Live map | County-led, State-supported decision points with owner, trigger, channel and languages; a roles matrix; communication pathways; a partner commitment register; shapes, icons and points of contact on the map; printable briefs; an assistant grounded in the on-screen figures. |
 
 ### Live by default
@@ -136,7 +139,7 @@ Open <http://localhost:8080>.
 npm test
 ```
 
-Eleven checks cover input validation, size limits, rate limiting, cross-origin refusal, path traversal, security headers and both model protocols.
+Twenty-one checks cover input validation, size limits, rate limiting, cross-origin refusal, path traversal and hidden files, security headers, both assistant protocols, the warning-outlook model (its inputs match its weights, its scores are probabilities, and they move the right way with the weather), resilience (a feed that never answers is cut off, and a county whose feed failed reads as missing, never as zero), and imported markup (only well-formed items survive).
 
 ### Configuration (`.env`)
 
@@ -181,6 +184,23 @@ Any OpenAI-compatible endpoint works. A larger local model gives better answers 
 node scripts/build-exposure.mjs
 ```
 
+## 7-day warning outlook (machine learning)
+
+The DHS brief lists predictive analytics and machine learning among the welcome approaches, and asks for "a faster path from a forecast to a coordinated plan". The outlook is that path: every county, every day for the next week, the chance that NWS Honolulu has a **Red Flag Warning**, a **Flood Watch or Flash Flood Warning**, or a **High Wind Warning** in force. One click on a percentage opens the Event planner on that county and hazard.
+
+- **Trained on what actually happened.** Labels are every NWS Honolulu watch and warning since 2022 (Iowa Environmental Mesonet VTEC archive), mapped to counties across all three zone-numbering schemes NWS used in that period. Inputs are the forecasts that were actually issued for each day (Open-Meteo's historical forecast archive) at 4–6 points per county, plus the rain in the 3 and 14 days before.
+- **A model a reviewer can read.** L2-regularised logistic regression, one per warning type, county as an input. Every weight is in `public/data/outlook-model.json`, and every score shows the two inputs that pushed it up ("gusts to 73 km/h", "114 mm in the 3 days before").
+- **Checked on days it never saw.** Fitted on 2022–2024 and scored on January 2025 to November 2026. The model ranks a warning day above a quiet day 95% of the time for Red Flag Warnings, 91% for flood and 85% for high wind (AUC). Flood probabilities are 35% better than the seasonal average (Brier skill score). Red Flag days are rare enough that the raw percentages run high, so the app shows levels relative to an ordinary day. All of this, with a predicted-versus-observed chart, is on the Data health page.
+- **Not a forecast or a warning.** It is labelled that way everywhere it appears. NWS issues warnings; AllReady issues none.
+
+```bash
+node scripts/train-outlook.mjs   # about 3 minutes; re-run each season to retrain on the newest warnings
+```
+
+## Built for poor connectivity
+
+The brief asks for a tool staff can use "during high-stress, low-connectivity conditions". Every request to an outside service has a time limit, so a feed that hangs is marked unavailable instead of leaving a page on "Loading…". Shelter lists come in three dated layers: the live feed (reused for 5 minutes, so moving between pages does not re-ask a service that throttles), this browser's last good copy if the feed is slow or down, and a snapshot shipped with the app (`node scripts/snapshot-shelters.mjs`) for a first visit on a bad connection. A county with none of these is reported as **missing, not zero**. The forecast and weather layers fall back the same way, and the fonts are served from the app itself, so pages render the same with or without outside access.
+
 ## Data: all public, de-identified, read live
 
 | Source | Used for | Refresh |
@@ -189,7 +209,8 @@ node scripts/build-exposure.mjs
 | HHS emPOWER public REST service, ZIP and county | Electricity-dependent Medicare beneficiaries, dialysis, oxygen | 30 min; latest HHS release |
 | Honolulu DEM, Hawaiʻi County Civil Defense, Kauaʻi EMA feature services | Shelter sites, status, capacity, accessibility, pets, power | 5 min |
 | National Weather Service `api.weather.gov` | The live event and its polygons | 5 min |
-| Iowa Environmental Mesonet VTEC archive | A year of past alerts for History | on demand |
+| Iowa Environmental Mesonet VTEC archive | Past alerts for History; labels for the warning outlook | on demand; `scripts/train-outlook.mjs` |
+| Open-Meteo forecast and historical forecast archive | Forecast weather the warning outlook reads; its training inputs | 60 min |
 | USGS, NASA FIRMS and GIBS, Open-Meteo | Earthquakes, fire detections, imagery, weather | live, daily, 30 min |
 | Hawaiʻi Statewide GIS, FEMA NFHL | Tsunami evacuation zones, fire risk areas, flood zones | as published |
 | U.S. Census Bureau TIGERweb, 2020 Census blocks | Where residents live inside each hazard zone | decennial; `scripts/build-exposure.mjs` |
@@ -211,22 +232,29 @@ src/
   scenarios.js    scenario planner                       exposure.js    residents inside each hazard zone
   roles.js        roles, pathways, commitment register      match.js       who confirms supply; commitment register
   method.js       live source check, coverage, factors   nav.js         navigation shared by every page
+  outlook.js      7-day warning outlook (trained model)  hazinfo.js     plain-language flood and tsunami zones
+  net.js          every outside request, with a time limit guide.js      page guides, help window and glossary
+  whatif.js       the what-if shared by two pages        markupclean.js validation for imported markup
   site.css        design system for the planning pages
 server/
   index.js        production server                      llm.js         /api/chat, /api/health
   static.js       read-only file handler                 security.js    CSP and security headers
-  *.test.js       eleven backend and security checks     mock-llm.mjs   test double for the model
+  *.test.js       backend and security checks            mock-llm.mjs   test double for the model
 scripts/build-exposure.mjs                 2020 Census blocks × State hazard zones → public/data/exposure.json
-docs/             plan, architecture, security, accessibility
+scripts/train-outlook.mjs                  NWS warnings × issued forecasts → public/data/outlook-model.json
+scripts/snapshot-shelters.mjs              every county's public shelter list → public/data/shelters-snapshot.json (fallback only)
+docs/             plan, architecture, security (with control map and plan of action), accessibility, SBOM
+public/.well-known/security.txt           where to report a security problem (RFC 9116)
 .github/          CI: build, test and dependency audit on every push
 ```
 
 ## How AI was used
 
-AI coding assistance (Claude) was used to write and review code and documents under the author's direction. **No figure in the app comes from a language model.** Every count, estimate and gap is computed by plain, readable code from the public feeds, and can be re-derived by anyone. The assistant only describes those figures: it is given the on-screen snapshot, told to use nothing else, and its output is displayed as text.
+AI coding assistance (Claude) was used to write and review code and documents under the author's direction. **No figure in the app comes from a language model.** The warning outlook is a small statistical model trained by `scripts/train-outlook.mjs` on public records, not a language model. Every count, estimate and gap is computed by plain, readable code from the public feeds, and can be re-derived by anyone. The assistant only describes those figures: it is given the on-screen snapshot, told to use nothing else, and its output is displayed as text.
 
 ## Limits, stated plainly
 
 - Needs figures are estimates from documented planning factors, shown in the app with their sources. They need validation with DHS and the county emergency management agencies. The past-events check shows how far off they are today.
+- The warning outlook learns from under five years of warnings. Red Flag and High Wind days are rare (about 1 county-day in 100), so its percentages for them are less reliable than its ranking, and days 5–7 of any forecast are less certain. It covers weather-driven warnings only: tsunamis and earthquakes cannot be forecast this way, and hurricanes are too rare to learn from.
 - The assistant runs on a small local model. It is instructed to quote the snapshot exactly, and it can still be wrong. Check figures against the panels.
 - Interface translations are drafts that need native-speaker review. Hawaiian, Ilocano, Samoan, Chuukese and Marshallese are deliberately not offered until that review exists.

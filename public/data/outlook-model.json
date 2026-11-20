@@ -1,0 +1,574 @@
+{
+ "generated": "2026-11-20",
+ "method": "L2-regularised logistic regression per hazard; inputs standardised with training means; county as indicator (Honolulu reference).",
+ "train": {
+  "from": "2022-01-15",
+  "to": "2024-12-31",
+  "rows": 4328
+ },
+ "test": {
+  "from": "2025-01-01",
+  "to": "2026-11-18",
+  "rows": 2748
+ },
+ "sources": [
+  {
+   "n": "NWS Honolulu watches and warnings (VTEC), via Iowa Environmental Mesonet",
+   "url": "https://mesonet.agron.iastate.edu/vtec/",
+   "products": {
+    "wildfire": 285,
+    "flood": 1511,
+    "wind": 311
+   }
+  },
+  {
+   "n": "Open-Meteo historical forecast archive",
+   "url": "https://open-meteo.com/en/docs/historical-forecast-api"
+  }
+ ],
+ "points": {
+  "15001": [
+   [
+    19.72,
+    -155.08
+   ],
+   [
+    19.64,
+    -155.99
+   ],
+   [
+    20.02,
+    -155.67
+   ],
+   [
+    19.2,
+    -155.48
+   ],
+   [
+    20.24,
+    -155.83
+   ],
+   [
+    19.49,
+    -154.95
+   ]
+  ],
+  "15003": [
+   [
+    21.31,
+    -157.86
+   ],
+   [
+    21.44,
+    -158.18
+   ],
+   [
+    21.41,
+    -157.8
+   ],
+   [
+    21.5,
+    -158.02
+   ],
+   [
+    21.65,
+    -158.06
+   ]
+  ],
+  "15007": [
+   [
+    21.98,
+    -159.37
+   ],
+   [
+    21.96,
+    -159.67
+   ],
+   [
+    22.2,
+    -159.5
+   ],
+   [
+    22.07,
+    -159.32
+   ]
+  ],
+  "15009": [
+   [
+    20.89,
+    -156.47
+   ],
+   [
+    20.88,
+    -156.68
+   ],
+   [
+    20.79,
+    -156.33
+   ],
+   [
+    20.76,
+    -156
+   ],
+   [
+    21.09,
+    -157.02
+   ],
+   [
+    20.83,
+    -156.92
+   ]
+  ]
+ },
+ "features": [
+  {
+   "k": "gust",
+   "n": "Strongest wind gust (km/h)",
+   "mean": 55.46439,
+   "sd": 13.48255
+  },
+  {
+   "k": "wind",
+   "n": "Strongest sustained wind (km/h)",
+   "mean": 25.75386,
+   "sd": 7.52909
+  },
+  {
+   "k": "rhmin",
+   "n": "Lowest humidity (%)",
+   "mean": 49.80568,
+   "sd": 8.32984
+  },
+  {
+   "k": "vpd",
+   "n": "Peak vapour-pressure deficit (kPa)",
+   "mean": 1.89265,
+   "sd": 0.4685
+  },
+  {
+   "k": "rain",
+   "n": "Wettest point's rain, log mm",
+   "mean": 1.93643,
+   "sd": 0.86112
+  },
+  {
+   "k": "rainh",
+   "n": "Hours of rain",
+   "mean": 14.81516,
+   "sd": 6.53361
+  },
+  {
+   "k": "rain3",
+   "n": "Rain over the previous 3 days, log mm",
+   "mean": 3.02468,
+   "sd": 0.82087
+  },
+  {
+   "k": "dry14",
+   "n": "Rain over the previous 14 days, log mm",
+   "mean": 3.69765,
+   "sd": 0.63143
+  },
+  {
+   "k": "tmax",
+   "n": "Highest temperature (°C)",
+   "mean": 28.6338,
+   "sd": 1.77625
+  },
+  {
+   "k": "sin",
+   "n": "Season (sine of day of year)",
+   "mean": -0.00144,
+   "sd": 0.71143
+  },
+  {
+   "k": "cos",
+   "n": "Season (cosine of day of year)",
+   "mean": -0.0126,
+   "sd": 0.70264
+  }
+ ],
+ "models": {
+  "wildfire": {
+   "label": "Red Flag Warning",
+   "lambda": 0.003,
+   "thresholds": {
+    "elevated": 0.0423,
+    "high": 0.1461
+   },
+   "intercept": -5.8383,
+   "coef": [
+    {
+     "k": "gust",
+     "w": 0.9865
+    },
+    {
+     "k": "wind",
+     "w": 0.6934
+    },
+    {
+     "k": "rhmin",
+     "w": -0.0176
+    },
+    {
+     "k": "vpd",
+     "w": 0.5443
+    },
+    {
+     "k": "rain",
+     "w": 0.0276
+    },
+    {
+     "k": "rainh",
+     "w": -0.0829
+    },
+    {
+     "k": "rain3",
+     "w": -0.2359
+    },
+    {
+     "k": "dry14",
+     "w": -0.369
+    },
+    {
+     "k": "tmax",
+     "w": 0.0388
+    },
+    {
+     "k": "sin",
+     "w": -0.9408
+    },
+    {
+     "k": "cos",
+     "w": 0.032
+    }
+   ],
+   "county": {
+    "15003": 0.1721,
+    "15007": 1.0114,
+    "15009": -0.3705
+   },
+   "trainBaseRate": 0.0183,
+   "test": {
+    "days": 2748,
+    "events": 28,
+    "auc": 0.949,
+    "brier": 0.0108,
+    "brierClimatology": 0.0102,
+    "skill": -0.059,
+    "flaggedHigh": 54,
+    "hitsHigh": 9,
+    "caughtElevated": 24,
+    "bins": [
+     {
+      "lo": 0,
+      "hi": 0.05,
+      "n": 2538,
+      "predicted": 0.006903063251355487,
+      "observed": 0.0027580772261623326
+     },
+     {
+      "lo": 0.05,
+      "hi": 0.1,
+      "n": 119,
+      "predicted": 0.07083438924373621,
+      "observed": 0.08403361344537816
+     },
+     {
+      "lo": 0.1,
+      "hi": 0.3,
+      "n": 68,
+      "predicted": 0.1544290445562187,
+      "observed": 0.08823529411764706
+     },
+     {
+      "lo": 0.3,
+      "hi": 0.6,
+      "n": 18,
+      "predicted": 0.42038183549912717,
+      "observed": 0.2222222222222222
+     },
+     {
+      "lo": 0.6,
+      "hi": 1,
+      "n": 5,
+      "predicted": 0.866579606649071,
+      "observed": 0.2
+     }
+    ]
+   },
+   "drivers": [
+    {
+     "k": "gust",
+     "dir": "up"
+    },
+    {
+     "k": "sin",
+     "dir": "down"
+    },
+    {
+     "k": "wind",
+     "dir": "up"
+    },
+    {
+     "k": "vpd",
+     "dir": "up"
+    }
+   ]
+  },
+  "flood": {
+   "label": "Flood Watch or Flash Flood Warning",
+   "lambda": 0.003,
+   "thresholds": {
+    "elevated": 0.0941,
+    "high": 0.3413
+   },
+   "intercept": -4.1798,
+   "coef": [
+    {
+     "k": "gust",
+     "w": -0.2357
+    },
+    {
+     "k": "wind",
+     "w": -0.0069
+    },
+    {
+     "k": "rhmin",
+     "w": 0.4517
+    },
+    {
+     "k": "vpd",
+     "w": -0.2524
+    },
+    {
+     "k": "rain",
+     "w": 1.1951
+    },
+    {
+     "k": "rainh",
+     "w": -0.3141
+    },
+    {
+     "k": "rain3",
+     "w": 0.275
+    },
+    {
+     "k": "dry14",
+     "w": -0.0994
+    },
+    {
+     "k": "tmax",
+     "w": -0.1859
+    },
+    {
+     "k": "sin",
+     "w": 0.001
+    },
+    {
+     "k": "cos",
+     "w": 0.1777
+    }
+   ],
+   "county": {
+    "15003": 0.7087,
+    "15007": -0.124,
+    "15009": -0.1245
+   },
+   "trainBaseRate": 0.0423,
+   "test": {
+    "days": 2748,
+    "events": 223,
+    "auc": 0.908,
+    "brier": 0.0493,
+    "brierClimatology": 0.0761,
+    "skill": 0.352,
+    "flaggedHigh": 122,
+    "hitsHigh": 89,
+    "caughtElevated": 160,
+    "bins": [
+     {
+      "lo": 0,
+      "hi": 0.05,
+      "n": 2134,
+      "predicted": 0.014372907618665744,
+      "observed": 0.019212746016869727
+     },
+     {
+      "lo": 0.05,
+      "hi": 0.1,
+      "n": 258,
+      "predicted": 0.06938766160032407,
+      "observed": 0.10465116279069768
+     },
+     {
+      "lo": 0.1,
+      "hi": 0.3,
+      "n": 219,
+      "predicted": 0.16709803094384856,
+      "observed": 0.2602739726027397
+     },
+     {
+      "lo": 0.3,
+      "hi": 0.6,
+      "n": 74,
+      "predicted": 0.41625083698153215,
+      "observed": 0.6081081081081081
+     },
+     {
+      "lo": 0.6,
+      "hi": 1,
+      "n": 63,
+      "predicted": 0.7608273560200134,
+      "observed": 0.8412698412698413
+     }
+    ]
+   },
+   "drivers": [
+    {
+     "k": "rain",
+     "dir": "up"
+    },
+    {
+     "k": "rhmin",
+     "dir": "up"
+    },
+    {
+     "k": "rainh",
+     "dir": "down"
+    },
+    {
+     "k": "rain3",
+     "dir": "up"
+    }
+   ]
+  },
+  "wind": {
+   "label": "High Wind Warning",
+   "lambda": 0.03,
+   "thresholds": {
+    "elevated": 0.0442,
+    "high": 0.0859
+   },
+   "intercept": -4.0116,
+   "coef": [
+    {
+     "k": "gust",
+     "w": 0.3435
+    },
+    {
+     "k": "wind",
+     "w": 0.2855
+    },
+    {
+     "k": "rhmin",
+     "w": -0.1324
+    },
+    {
+     "k": "vpd",
+     "w": -0.0605
+    },
+    {
+     "k": "rain",
+     "w": 0.1081
+    },
+    {
+     "k": "rainh",
+     "w": -0.0801
+    },
+    {
+     "k": "rain3",
+     "w": -0.0201
+    },
+    {
+     "k": "dry14",
+     "w": 0.1127
+    },
+    {
+     "k": "tmax",
+     "w": -0.0706
+    },
+    {
+     "k": "sin",
+     "w": 0.0976
+    },
+    {
+     "k": "cos",
+     "w": 0.2881
+    }
+   ],
+   "county": {
+    "15003": -0.0631,
+    "15007": -0.0697,
+    "15009": -0.0776
+   },
+   "trainBaseRate": 0.0222,
+   "test": {
+    "days": 2748,
+    "events": 55,
+    "auc": 0.853,
+    "brier": 0.0185,
+    "brierClimatology": 0.0196,
+    "skill": 0.058,
+    "flaggedHigh": 44,
+    "hitsHigh": 16,
+    "caughtElevated": 30,
+    "bins": [
+     {
+      "lo": 0,
+      "hi": 0.05,
+      "n": 2577,
+      "predicted": 0.017192010975655536,
+      "observed": 0.010477299185098952
+     },
+     {
+      "lo": 0.05,
+      "hi": 0.1,
+      "n": 141,
+      "predicted": 0.06582569025333292,
+      "observed": 0.11347517730496454
+     },
+     {
+      "lo": 0.1,
+      "hi": 0.3,
+      "n": 27,
+      "predicted": 0.12910115855252322,
+      "observed": 0.4444444444444444
+     },
+     {
+      "lo": 0.3,
+      "hi": 0.6,
+      "n": 3,
+      "predicted": 0.38569895147599403,
+      "observed": 0
+     },
+     {
+      "lo": 0.6,
+      "hi": 1,
+      "n": 0,
+      "predicted": null,
+      "observed": null
+     }
+    ]
+   },
+   "drivers": [
+    {
+     "k": "gust",
+     "dir": "up"
+    },
+    {
+     "k": "cos",
+     "dir": "up"
+    },
+    {
+     "k": "wind",
+     "dir": "up"
+    },
+    {
+     "k": "rhmin",
+     "dir": "down"
+    }
+   ]
+  }
+ }
+}

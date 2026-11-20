@@ -23,6 +23,15 @@ Map|Mapa|Mapa|地図|地圖|지도|Bản đồ
 Widgets|Paneles|Mga Widget|ウィジェット|小工具|위젯|Tiện ích
 Open planning map|Abrir el mapa de planificación|Buksan ang mapa ng pagpaplano|計画マップを開く|開啟規劃地圖|계획 지도 열기|Mở bản đồ lập kế hoạch
 Open insights|Abrir el análisis|Buksan ang mga insight|インサイトを開く|開啟分析|인사이트 열기|Mở phân tích
+Open Insights|Abrir el análisis|Buksan ang mga insight|インサイトを開く|開啟分析|인사이트 열기|Mở phân tích
+Live map|Mapa en vivo|Live na mapa|ライブマップ|即時地圖|실시간 지도|Bản đồ trực tiếp
+Open the live map|Abrir el mapa en vivo|Buksan ang live na mapa|ライブマップを開く|開啟即時地圖|실시간 지도 열기|Mở bản đồ trực tiếp
+Event planner|Planificador de eventos|Tagaplano ng kaganapan|イベント計画|事件規劃|이벤트 계획|Lập kế hoạch sự kiện
+Plan an event|Planificar un evento|Magplano ng kaganapan|イベントを計画する|規劃事件|이벤트 계획하기|Lập kế hoạch cho sự kiện
+Coordination|Coordinación|Koordinasyon|調整|協調|조정|Điều phối
+Data health|Estado de los datos|Kalagayan ng datos|データの状態|資料狀態|데이터 상태|Tình trạng dữ liệu
+Print brief|Imprimir resumen|I-print ang buod|概要を印刷|列印簡報|브리핑 인쇄|In bản tóm tắt
+Hide|Ocultar|Itago|隠す|隱藏|숨기기|Ẩn
 Layers|Capas|Mga Layer|レイヤー|圖層|레이어|Lớp
 Shelters|Refugios|Mga Silungan|避難所|避難所|대피소|Nơi trú ẩn
 Markup|Anotaciones|Mga Marka|マークアップ|標記|표시|Đánh dấu

@@ -3,11 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="./boot.js"></script>
+<meta name="color-scheme" content="light dark">
+<style>/* first paint: page colour, no unstyled flash, smooth page-to-page */
+html{background:#f1f3f6}html[data-theme=dark]{background:#0e141b}#top{min-height:52px;background:#13294b}html[data-theme=dark] #top{background:#0a1626}
+@view-transition{navigation:auto}
+@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
+::view-transition-old(root),::view-transition-new(root){animation-duration:.16s}
+body{opacity:0;animation:ar-show 0s 1s forwards}
+@keyframes ar-show{to{opacity:1}}
+</style>
 <meta name="description" content="AllReady data health: every source checked live, coverage by county and hazard, the model checked against past Hawaiʻi events, and every planning factor.">
 <title>AllReady · Data health</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./fonts/fonts.css">
 </head>
 <body class="site">
 <a class="skip" href="#main">Skip to the content</a>
@@ -43,9 +51,21 @@
       <div id="backtest"></div>
     </section>
 
+    <section class="panel" aria-labelledby="oT" id="outlook-check">
+      <div class="panel-h"><div><h2 id="oT">Warning outlook: model check</h2><p>The 7-day outlook in the Event planner is a trained model. It was fitted on 2022–2024 and is scored here on later days it never saw, against the warnings NWS Honolulu actually issued.</p></div></div>
+      <div class="panel-b flush s-tw" id="olCheck"><p class="s-empty" style="margin:14px">Loading the model…</p></div>
+      <div class="panel-b" id="olRel"></div>
+      <p class="s-src" id="olMeth"></p>
+    </section>
+
     <section class="panel" aria-labelledby="fT">
       <div class="panel-h"><div><h2 id="fT">Planning factors</h2><p>Published factors cite a named standard. Assumptions are AllReady's own and are the first values to validate with DHS and the counties.</p></div></div>
       <div class="panel-b flush s-tw" id="factors"></div>
+    </section>
+    <section class="panel" aria-labelledby="gT2" id="local-data">
+      <div class="panel-h"><div><h2 id="gT2">Data in this browser</h2><p>AllReady has no accounts and no database. Everything it keeps is stored in this browser on this computer, and nothing here leaves the machine unless you export it. This is the full list.</p></div><button id="clearAll" class="s-btn" type="button">Clear everything</button></div>
+      <div class="panel-b flush s-tw" id="local"></div>
+      <p class="s-src">Data classes: every source feed is public; every figure derived from them is public and area-level; planner entries (markup, partner commitments, supply counts) are internal planning information about organisations and facilities, never residents. Points of contact in markup are removed before anything is sent to the assistant.</p>
     </section>
   </div>
 </main>

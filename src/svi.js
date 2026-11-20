@@ -11,6 +11,7 @@
    resources cares where a tract sits among the tracts they are choosing between.
 
    Public, de-identified, tract-level. Nothing here can describe a household. */
+import { fetchT } from "./net.js";
 
 const BASE = "https://onemap.cdc.gov/onemapservices/rest/services/SVI/CDC_ATSDR_Social_Vulnerability_Index_2022_USA/FeatureServer/";
 const CORE = "FIPS,LOCATION,E_TOTPOP,E_DISABL,E_LIMENG,E_NOVEH,E_AGE65,EP_DISABL,EP_LIMENG,EP_NOVEH,EP_AGE65";
@@ -41,7 +42,7 @@ export async function fetchSVI({ geometry = true } = {}) {
   for (const id of [2, 0, 3]) {
     for (const fields of [CORE + EXTRA, CORE]) {
       try {
-        const r = await fetch(`${BASE}${id}/query?where=${where}&outFields=${fields}&returnGeometry=${geometry}${geo}&resultRecordCount=2000`);
+        const r = await fetchT(`${BASE}${id}/query?where=${where}&outFields=${fields}&returnGeometry=${geometry}${geo}&resultRecordCount=2000`);
         if (!r.ok) continue;
         const j = await r.json();
         const fs = j.features || [];

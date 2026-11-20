@@ -32,6 +32,12 @@ import { liveEvent, insideEvent, manualSupply, setManualSupply, stamp } from "./
 import { renderShelters, renderResources, renderFactors, renderSources } from "./panels.js";
 import { SOURCES } from "./sources.js";
 import { navLinks } from "./nav.js";
+import { floodRows, tsunamiRows, FLOOD_LEGEND } from "./hazinfo.js";
+import { loadOutlook, peaks, level, pct as opct, dayName, outlookContext } from "./outlook.js";
+import { fetchT } from "./net.js";
+import { mountGuide, helpButton } from "./guide.js";
+import { loadExposure, share as zshare, ZONES } from "./exposure.js";
+import { readWhatIf, writeWhatIf, onWhatIf } from "./whatif.js";
 
 const $ = (i) => document.getElementById(i);
 const BASE = import.meta.env.BASE_URL;
@@ -46,6 +52,8 @@ const store = { get(k, d) { try { const v = JSON.parse(localStorage.getItem(k));
 mountThemeToggle($("theme-host"));
 mountLanguage($("lang-host"));
 $("pgnav")?.append(...navLinks("map", "lnk"));
+$("pgnav")?.after(helpButton());
+mountGuide("map", { float: $("center") });
 setInterval(() => ($("clk").textContent = new Date().toLocaleTimeString("en-US", { timeZone: "Pacific/Honolulu", hour12: false }) + " HST"), 1000);
 
 // ---------- colour ramps for data layers ----------
@@ -74,7 +82,6 @@ const HZC = { flood: "#38bdf8", tsunami: "#22d3ee", hurricane: "#a78bfa", wildfi
 const qs = new URLSearchParams(location.search);
 const hz = (qs.get("hazard") || "").toLowerCase().replace(/[^a-z]/g, "") || null;
 const isl = ISL[(qs.get("island") || "").toLowerCase()] || null;
-const hasScn = !!(hz || isl);
 
 // ---------- persisted state ----------
 const S = Object.assign({ base: "dark", baseAuto: true, on: { terrain: true, roads: true, labels: true, hill: false, nws: true, quake: false, shel: true, afn: true }, op: {}, open: { base: 1, haz: 1, wx: 1, needs: 1, res: 1, arc: 1 }, exag: 1.4, afnMode: "idx", arc: [], scope: "state", mode: "live" }, store.get("allready.v6", {}));
@@ -82,6 +89,12 @@ if (S.mode !== "whatif") S.mode = "live"; // live is the default; a what-if has 
 // A link from the Scenarios page opens that scenario here: ?whatif=1&hazard=wildfire&county=15009
 if (qs.get("whatif") === "1" && SCENARIOS[hz]) S.mode = "whatif";
 if (/^150(01|03|05|07|09)$/.test(qs.get("county") || "")) S.scope = qs.get("county");
+// The what-if is shared with the Event planner (src/whatif.js). With no link parameters the
+// map opens on the scenario last chosen on either page, so the two never disagree.
+const WI = readWhatIf();
+if (S.mode === "whatif" && !qs.get("county") && WI.county) S.scope = WI.county;
+const startHz = (SCENARIOS[hz] ? hz : null) || WI.hazard || "hurricane";
+let WHAT_HZ = startHz; // hazard drawn by the what-if footprint layer
 const READ = { nws: 0, shel: 0, emp: 0, svi: 0 }; // when each live feed was last read
 S.on = Object.assign({ terrain: true, roads: true, labels: true, hill: false, nws: true, shel: true, afn: true }, S.on);
 // Seed the basemap from the theme BEFORE the map is constructed, so a light-theme session
@@ -160,7 +173,7 @@ const rgbOf = (t) => { const c = col("afn", t); return `rgb(${c[0] | 0},${c[1] |
 
 // ---------- data held between style changes ----------
 const EMPTY = { type: "FeatureCollection", features: [] };
-const DATA = { nws: EMPTY, quake: EMPTY, shel: EMPTY, afn: EMPTY, tsu: EMPTY };
+const DATA = { nws: EMPTY, quake: EMPTY, shel: EMPTY, afn: EMPTY, tsu: EMPTY, scen: EMPTY };
 const WXIMG = {}; // id -> { g: dataURL, h: dataURL }
 const wxState = {}; // id -> "loading" | "error"
 
@@ -179,8 +192,9 @@ const DEFS = [
   mkWx("rain", "Precipitation", "precipitation", "rain", "current"),
   mkWx("cloud", "Cloud cover", "cloud_cover", "cloud", "percent"),
   { id: "afn", g: "needs", n: "AFN need (census tracts)", s: "CDC/ATSDR SVI 2022 · ACS 2018-2022", d: "Every Hawaiʻi census tract, colored by its rank among Hawaiʻi tracts. Composite = average rank of disability, limited English, no vehicle and age 65+ (CMIST proxies). Public, de-identified, tract-level. Click a tract for counts.", ramp: "afn", sw: cssRamp("afn") },
-  { id: "nfhl", g: "haz", n: "Flood hazard zones", s: "FEMA NFHL", d: "FEMA National Flood Hazard Layer. Draws when zoomed in to island or neighborhood scale.", sw: "#5aa9e6" },
-  { id: "tsu", g: "haz", n: "Tsunami evacuation zones", s: "Hawaiʻi Statewide GIS", d: "Tsunami and extreme tsunami evacuation zones from the Hawaiʻi Statewide GIS Program (county data, updated 2025). A guideline, not a warning.", sw: "#22d3ee", leg: "tsu" },
+  { id: "scen", g: "needs", n: "What-if area", s: "2020 Census blocks × State hazard zones", d: "Shown while a what-if is running: the census tracts with residents inside the chosen hazard's zone, darker where more of the tract lives inside it. These are the same residents the Event planner counts.", sw: "#fb923c", leg: "scen" },
+  { id: "nfhl", g: "haz", n: "Flood hazard zones", s: "FEMA NFHL", d: "FEMA National Flood Hazard Layer. Blue is the 1%-a-year (“100-year”) flood area, red the floodway, yellow the 0.2%-a-year area, grey Zone D (not studied). Draws when zoomed in; click the map for the zone and what it means.", sw: "#5aa9e6", leg: "nfhl" },
+  { id: "tsu", g: "haz", n: "Tsunami evacuation zones", s: "Hawaiʻi Statewide GIS", d: "Cyan: leave for any tsunami warning. Purple: leave only when officials call for an extreme tsunami. Hawaiʻi Statewide GIS Program (county data, updated 2025). A guideline, not a warning; click a zone for details.", sw: "#22d3ee", leg: "tsu" },
   { id: "fires", g: "haz", n: "Active fire detections", s: "NASA FIRMS / VIIRS · replays", d: "VIIRS 375 m thermal anomalies from NASA FIRMS, served by NASA GIBS. Follows the timeline bar. A detection is heat, not a confirmed wildfire.", sw: "#fb923c" },
   { id: "nws", g: "haz", n: "NWS alerts", s: "api.weather.gov · live", d: "Active watches and warnings for Hawaiʻi, drawn on their forecast zones. Open the Alerts tab for the list.", sw: "#f2c14e", leg: "sev" },
   { id: "quake", g: "haz", n: "Earthquakes (M2.5+)", s: "USGS · replays a full year", d: "Magnitude 2.5 and above near the islands. Live view shows the last 30 days; in replay the map shows the timeline's trail window. Circle size is magnitude.", sw: "#e4572e", leg: "quake" },
@@ -206,10 +220,9 @@ function specOf(d) {
       { id: "nws-line", type: "line", source: "nws", paint: { "line-color": sevExpr(), "line-width": 1.6 } }] };
     case "quake": return { sources: { quake: { type: "geojson", data: DATA.quake } }, layers: [
       { id: "quake", type: "circle", source: "quake", filter: quakeFilter(), paint: { "circle-color": "#e4572e", "circle-radius": ["interpolate", ["linear"], ["get", "mag"], 2, 3, 4, 8, 6, 20, 8, 34], "circle-stroke-color": "#fff", "circle-stroke-width": 1 } }] };
-    case "scen": return { sources: { scen: { type: "geojson", data: scenGeo() } }, layers: [
-      { id: "scen-fill", type: "fill", source: "scen", paint: { "fill-color": HZC[hz] || "#e4572e" } },
-      { id: "scen-line", type: "line", source: "scen", paint: { "line-color": HZC[hz] || "#e4572e", "line-width": 2, "line-dasharray": [2, 2] } },
-      { id: "scen-label", type: "symbol", source: "scen", layout: { "text-field": ["get", "label"], "text-font": labelFont(), "text-size": 12, "text-max-width": 16 }, paint: { "text-color": "#fff", "text-halo-color": "rgba(0,0,0,.85)", "text-halo-width": 1.6 } }] };
+    case "scen": { const c = HZC[WHAT_HZ] || "#fb923c"; return { sources: { scen: { type: "geojson", data: DATA.scen } }, layers: [
+      { id: "scen-fill", type: "fill", source: "scen", paint: { "fill-color": scenColor(c) }, _b: 2.6 },
+      { id: "scen-line", type: "line", source: "scen", paint: { "line-color": c, "line-width": 1.1 } }] }; }
     case "afn": return { sources: { afn: { type: "geojson", data: DATA.afn } }, layers: [
       { id: "afn", type: "fill", source: "afn", paint: { "fill-color": ["interpolate", ["linear"], ["get", "v"], 0, rgbOf(0), 20, rgbOf(.2), 40, rgbOf(.4), 60, rgbOf(.6), 80, rgbOf(.8), 100, rgbOf(1)] }, _b: 1.6 },
       { id: "afn-line", type: "line", source: "afn", paint: { "line-color": "rgba(128,128,140,.35)", "line-width": .4 } }] };
@@ -254,13 +267,9 @@ const arcState = {};
 const arcDef = (a) => ({ id: a.id, g: "arc", n: a.name, s: "ArcGIS · " + hostOf(a.url), d: (a.kind === "feature" ? "Features from a public ArcGIS layer, drawn in the browser. Click one for its attributes." : "Map image drawn by a public ArcGIS service.") + (a.attribution ? " Credit: " + a.attribution : ""), sw: a.color, arc: a, leg: "arc" });
 (S.arc || []).forEach((a) => { const d = arcDef(a); DEFS.push(d); BYID[d.id] = d; });
 
-// A circle polygon (km) for the illustrative scenario zone
-function scenGeo() {
-  const c = isl || ISL.oahu, r = (isl ? isl[4] : 30) * 1000, pts = [];
-  for (let i = 0; i <= 64; i++) { const a = (i / 64) * 2 * Math.PI, dLat = (r * Math.cos(a)) / 111320, dLon = (r * Math.sin(a)) / (111320 * Math.cos((c[2] * Math.PI) / 180)); pts.push([c[1] + dLon, c[2] + dLat]); }
-  const name = hz ? hz[0].toUpperCase() + hz.slice(1) : "Scenario";
-  return { type: "Feature", properties: { label: `Illustrative ${name.toLowerCase()} scenario zone${isl ? " · " + isl[0] : ""}` }, geometry: { type: "Polygon", coordinates: [pts] } };
-}
+// What-if footprint colour: the hazard's colour, stronger where more of the tract is in the zone
+const rgbaOf = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
+const scenColor = (c) => ["interpolate", ["linear"], ["get", "w"], 0, rgbaOf(c, 0.22), 1, rgbaOf(c, 1)];
 
 // ---------- map ----------
 let map;
@@ -421,13 +430,13 @@ const SEV = { Extreme: 4, Severe: 3, Moderate: 2, Minor: 1 };
 const zoneCache = {};
 async function zoneGeom(u) {
   if (zoneCache[u] !== undefined) return zoneCache[u];
-  try { const r = await fetch(u, { headers: { Accept: "application/geo+json" } }); zoneCache[u] = r.ok ? (await r.json()).geometry : null; } catch { zoneCache[u] = null; }
+  try { const r = await fetchT(u, { headers: { Accept: "application/geo+json" } }); zoneCache[u] = r.ok ? (await r.json()).geometry : null; } catch { zoneCache[u] = null; }
   return zoneCache[u];
 }
 async function loadAlerts() {
   $("alertSrc").textContent = "Checking National Weather Service…";
   try {
-    const r = await fetch("https://api.weather.gov/alerts/active?area=HI", { headers: { Accept: "application/geo+json" } });
+    const r = await fetchT("https://api.weather.gov/alerts/active?area=HI", { headers: { Accept: "application/geo+json" } });
     if (!r.ok) throw new Error(r.status);
     const fs = (await r.json()).features || [];
     const zones = [...new Set(fs.filter((f) => !f.geometry).flatMap((f) => f.properties.affectedZones || []))].slice(0, 30);
@@ -450,7 +459,7 @@ function loadQuakes() { // one request covers the whole timeline: M2.5+ for the 
   const from = new Date(Date.now() - 366 * DAY).toISOString().slice(0, 10);
   quakeLoading = (async () => {
     try {
-      const r = await fetch(`https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=${from}&minlatitude=18&maxlatitude=23&minlongitude=-161&maxlongitude=-154&minmagnitude=2.5&orderby=time&limit=20000`);
+      const r = await fetchT(`https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=${from}&minlatitude=18&maxlatitude=23&minlongitude=-161&maxlongitude=-154&minmagnitude=2.5&orderby=time&limit=20000`);
       if (!r.ok) throw new Error(r.status);
       DATA.quake = await r.json(); map.getSource("quake")?.setData(DATA.quake); renderMarks(); renderGroups();
     } catch { quakeLoading = null; }
@@ -461,13 +470,13 @@ function loadQuakes() { // one request covers the whole timeline: M2.5+ for the 
 const SHEL = { list: [], score: [], actions: [], state: null, errors: [] };
 let EMP = null, empState = null;
 
-async function loadShelterFeeds() {
+async function loadShelterFeeds(force = false) {
   if (SHEL.state === "loading" || SHEL.list.length) return;
   SHEL.state = "loading"; renderGroups(); refreshPanels();
   try {
-    const { shelters, errors } = await loadShelters();
+    const { shelters, errors } = await loadShelters({ force });
     SHEL.list = shelters; SHEL.errors = errors;
-    SHEL.score = readiness(shelters);
+    SHEL.score = readiness(shelters, errors);
     SHEL.actions = dataActions(SHEL.score);
     DATA.shel = toGeoJSON(shelters);
     map.getSource("shel")?.setData(DATA.shel);
@@ -568,7 +577,7 @@ $("groups").addEventListener("click", (e) => {
   const b = e.target.closest("button"); if (!b) return;
   if (b.dataset.base) { setBase(b.dataset.base); return; }
   if (b.dataset.ex) { const id = b.dataset.ex; openRows.has(id) ? openRows.delete(id) : openRows.add(id); const m = $("mo-" + id); m.hidden = !openRows.has(id); b.setAttribute("aria-expanded", openRows.has(id)); return; }
-  if (b.dataset.zoom) { const id = b.dataset.zoom; if (id === "scen" && isl) fly(isl); else flyHi(); }
+  if (b.dataset.zoom) { const id = b.dataset.zoom; if (id === "scen" && DATA.scen.features.length) fitScen(); else flyHi(); }
   if (b.dataset.arcdel) removeArc(b.dataset.arcdel);
 });
 $("groups").addEventListener("input", (e) => {
@@ -616,6 +625,21 @@ $("alertList").addEventListener("click", (e) => {
   if (a.g) { const bb = bbox(a.g); map.fitBounds(bb, { padding: 80, duration: REDUCED ? 0 : 1200, maxZoom: 10 }); } else flyHi();
 });
 $("alertRefresh").onclick = loadAlerts;
+
+// ---------- 7-day warning outlook (trained model; see src/outlook.js) ----------
+// Sits above the real alerts and says plainly that it is not one. Each line opens the Event
+// planner on that county and hazard, so a forecast becomes a rehearsed plan in one click.
+let OUTLOOK = null;
+function renderOutlookBox() {
+  const box = $("olBox"); if (!OUTLOOK) return;
+  const top = peaks(OUTLOOK, 3).filter((x) => level(x.p, OUTLOOK.model.models[x.hz.k].thresholds) !== "low").slice(0, 4);
+  box.replaceChildren(
+    h("div", { class: "olh" }, h("b", {}, "Model outlook · next 3 days"), h("span", {}, "Not an NWS alert")),
+    ...(top.length ? top.map((x) => h("a", { class: "olr lv-" + level(x.p, OUTLOOK.model.models[x.hz.k].thresholds), href: `scenarios.html?county=${x.fips}&hazard=${x.hz.plan}`, title: x.why.length ? "Driven by " + x.why.join(" and ") : "" },
+      h("span", { class: "olp" }, opct(x.p)), h("span", {}, h("b", {}, `${x.hz.warn} · ${x.county}`), h("em", {}, `${dayName(x.day, x.lead)}${x.why.length ? " · " + x.why[0] : ""}`)), h("span", { class: "olgo" }, "Rehearse")))
+      : [h("p", { class: "src" }, "Nothing unusual: no county is above its normal chance of a Red Flag, flood or high-wind warning.")]));
+}
+loadOutlook().then((o) => { OUTLOOK = o; renderOutlookBox(); }).catch(() => {});
 function bbox(g) { let w = 180, s = 90, e = -180, n = -90; (function walk(c) { if (typeof c[0] === "number") { w = Math.min(w, c[0]); e = Math.max(e, c[0]); s = Math.min(s, c[1]); n = Math.max(n, c[1]); } else c.forEach(walk); })(g.coordinates); return [[w, s], [e, n]]; }
 
 // ---------- legend ----------
@@ -629,7 +653,8 @@ function renderLegend() {
     else if (d.leg === "shel") box.append(h("div", { class: "lg" }, h("div", { class: "lgn" }, d.n),
       h("div", { class: "sevs" }, [["ADA accessible", "#4fd18b"], ["Not accessible", "#ff5f52"], ["Not published", "#7a8699"]].map(([n, c]) => h("span", {}, h("i", { style: "background:" + c }), n))),
       h("div", { class: "src" }, "Gold ring = the county has it open now. Grey is a missing record, not a “no”.")));
-    else if (d.id === "scen") box.append(h("div", { class: "lg" }, h("div", { class: "lgn" }, d.n), h("div", { class: "src" }, "Illustrative area, not a hazard map")));
+    else if (d.id === "nfhl") box.append(h("div", { class: "lg" }, h("div", { class: "lgn" }, d.n), h("div", { class: "sevs col" }, FLOOD_LEGEND.map(([c, n]) => h("span", {}, h("i", { style: "background:" + c }), n))), h("div", { class: "src" }, "Click anywhere on the map for the zone code and what it means.")));
+    else if (d.id === "scen") box.append(h("div", { class: "lg" }, h("div", { class: "lgn" }, `${d.n} · ${SCENARIOS[WHAT_HZ]?.n || ""}`), h("div", { class: "ramp", style: `background:linear-gradient(90deg,${rgbaOf(HZC[WHAT_HZ] || "#fb923c", .2)},${HZC[WHAT_HZ] || "#fb923c"})` }), h("div", { class: "lab" }, h("span", {}, "few residents in zone"), h("span", {}, "all in zone")), h("div", { class: "src" }, ZONES[WHAT_HZ]?.basis || "")));
     else if (d.arc) box.append(h("div", { class: "lg" }, h("div", { class: "sevs" }, h("span", {}, h("i", { style: "background:" + d.sw }), d.n)), h("div", { class: "src" }, d.arc.attribution ? d.arc.attribution.slice(0, 60) : hostOf(d.arc.url))));
   }
   box.hidden = !box.children.length; $("legendEmpty").hidden = !box.hidden;
@@ -646,7 +671,7 @@ function showInspector({ tag, title, rows, note }) {
   dock?.open("inspector");
 }
 $("rClose").onclick = () => { $("inspBody").hidden = true; $("inspEmpty").hidden = false; pin?.remove(); pin = null; };
-const interactive = () => ["nws-fill", "quake", "shel-pt", "scen-fill", ...DEFS.filter((d) => d.arc?.kind === "feature").flatMap(layerIds)].filter((i) => map.getLayer(i));
+const interactive = () => ["nws-fill", "quake", "shel-pt", "scen-fill", "tsu-fill", ...DEFS.filter((d) => d.arc?.kind === "feature").flatMap(layerIds)].filter((i) => map.getLayer(i));
 map.on("click", async (e) => {
   if (annotations?.consume(e)) return;
   const lat = e.lngLat.lat, lon = e.lngLat.lng;
@@ -657,11 +682,15 @@ map.on("click", async (e) => {
   if (hit?.layer.id === "nws-fill") { tag = "NWS alert"; title = p.event; note = p.headline; }
   else if (hit?.layer.id === "quake") { tag = "USGS earthquake"; title = "M " + (+p.mag).toFixed(1); note = p.place + " · " + new Date(+p.time).toLocaleString("en-US", { timeZone: "Pacific/Honolulu" }) + " HST"; }
   else if (hit?.layer.id === "shel-pt") { tag = p.countyName || "County shelter"; title = p.name || "Shelter"; note = [p.address, p.city].filter(Boolean).join(", "); }
-  else if (hit?.layer.id === "scen-fill") { tag = "Scenario (illustrative)"; title = p.label; }
+  else if (hit?.layer.id === "scen-fill") { tag = `What-if area · ${SCENARIOS[WHAT_HZ]?.n || ""}`; title = String(p.loc || "").split(";")[0] || "Census tract"; note = `${Math.round((+p.w || 0) * 100)}% of this tract's 2020 Census residents live inside the zone: ${ZONES[WHAT_HZ]?.basis || ""}. A rehearsal, not a real event.`; }
+  else if (hit?.layer.id === "tsu-fill") { tag = "Tsunami evacuation zone · Hawaiʻi Statewide GIS"; title = p.zone_type || "Tsunami zone"; note = "A planning guideline from the counties, not a warning. In a real event follow the county's evacuation orders."; }
   const arcHit = hit && DEFS.find((d) => d.arc && layerIds(d).includes(hit.layer.id));
   if (arcHit) { tag = "ArcGIS · " + arcHit.n; title = String(p[arcHit.arc.display] || arcHit.n).slice(0, 80); note = "Source: " + (arcHit.arc.attribution || hostOf(arcHit.arc.url)); }
   const rows = [["Latitude", lat.toFixed(5)], ["Longitude", lon.toFixed(5)], ["Elevation", "…"]];
   if (arcHit) rows.push(...Arc.attrRows(p, arcHit.arc.fields, 8));
+  if (hit?.layer.id === "tsu-fill") rows.push(...tsunamiRows(p.zone_type));
+  // FEMA's flood layer is an image: ask FEMA what zone is under the point and say what it means
+  const floodAt = S.on.nfhl && map.getZoom() >= 8 ? rows.push(["Flood zone (FEMA)", "…"]) - 1 : -1;
   // A shelter shows what its county published AND what it never published — the blanks
   // are the point, so they read "not published" rather than quietly disappearing.
   if (hit?.layer.id === "shel-pt") {
@@ -682,17 +711,23 @@ map.on("click", async (e) => {
     rows.push(["AFN index (rank 0-100)", Math.round(a.idx)], ["Population", f(a.pop)], ["With a disability", f(a.dis) + " (" + a.pdis + "%)"], ["Limited English", f(a.lep) + " (" + a.plep + "%)"], ["No vehicle (households)", f(a.nov) + " (" + a.pnov + "%)"], ["Age 65+", f(a.a65) + " (" + a.p65 + "%)"]); }
   rows.push(["NWS forecast", "…"]); const fi = rows.length - 1;
   nwsForecast(lat, lon, fi);
+  if (floodAt >= 0 && !hit) { tag = "FEMA flood hazard zone"; title = "Checking FEMA…"; note = "FEMA National Flood Hazard Layer. Zones describe the chance of flooding in any year; they are not a forecast."; }
   showInspector({ tag, title, rows, note });
+  if (floodAt >= 0) floodRows(lat, lon).then((fr) => {
+    const host = document.querySelector(`#sRows [data-r="${floodAt}"]`); if (!host) return;
+    host.replaceWith(...fr.map(([k, v]) => h("div", { class: "row" }, h("span", {}, k), h("span", {}, v))));
+    if ($("sTitle").textContent === "Checking FEMA…") $("sTitle").textContent = "Flood zone " + (fr[0][1] || "");
+  }).catch(() => { setRow(floodAt, "FEMA did not answer"); if ($("sTitle").textContent === "Checking FEMA…") $("sTitle").textContent = "Selected location"; });
   const el = map.queryTerrainElevation(e.lngLat);
   if (el != null) { setRow(2, Math.round(el / (S.on.terrain ? S.exag : 1)) + " m"); return; }
-  try { const j = await (await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`)).json(); setRow(2, Math.round(j.elevation[0]) + " m"); } catch { setRow(2, "unavailable"); }
+  try { const j = await (await fetchT(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`)).json(); setRow(2, Math.round(j.elevation[0]) + " m"); } catch { setRow(2, "unavailable"); }
 });
 const setRow = (i, v) => { const r = document.querySelector(`#sRows [data-r="${i}"] span:last-child`); if (r) r.textContent = v; };
 async function nwsForecast(lat, lon, i) {
   try {
     const H = { headers: { Accept: "application/geo+json" } };
-    const pt = await (await fetch(`https://api.weather.gov/points/${lat.toFixed(4)},${lon.toFixed(4)}`, H)).json();
-    const fc = await (await fetch(pt.properties.forecast, H)).json(), p = fc.properties.periods[0];
+    const pt = await (await fetchT(`https://api.weather.gov/points/${lat.toFixed(4)},${lon.toFixed(4)}`, H)).json();
+    const fc = await (await fetchT(pt.properties.forecast, H)).json(), p = fc.properties.periods[0];
     setRow(i, `${p.name}: ${p.shortForecast}, ${p.temperature}°${p.temperatureUnit}`);
   } catch { setRow(i, "unavailable"); }
 }
@@ -725,7 +760,7 @@ async function loadAfn() {
   const base = "FIPS,LOCATION,E_TOTPOP,E_DISABL,E_LIMENG,E_NOVEH,E_AGE65,EP_DISABL,EP_LIMENG,EP_NOVEH,EP_AGE65";
   const q = (f) => "where=" + encodeURIComponent("ST_ABBR='HI'") + "&outFields=" + f + "&outSR=4326&f=geojson&maxAllowableOffset=0.0004&geometryPrecision=5&resultRecordCount=2000";
   try {
-    outer: for (const id of [2, 0, 3]) for (const f of [base + ",E_AGE17,E_SNGPNT,E_HH", base]) { const r = await fetch(AFN_URL + id + "/query?" + q(f)); if (!r.ok) continue; const j = await r.json(); if ((j.features || []).length > 50) { afnRaw = j; break outer; } }
+    outer: for (const id of [2, 0, 3]) for (const f of [base + ",E_AGE17,E_SNGPNT,E_HH", base]) { const r = await fetchT(AFN_URL + id + "/query?" + q(f), {}, 30000); if (!r.ok) continue; const j = await r.json(); if ((j.features || []).length > 50) { afnRaw = j; break outer; } }
     if (!afnRaw) throw new Error("no tract layer");
     afnState = null; READ.svi = Date.now(); applyAfn();
   } catch { afnState = "error"; }
@@ -747,7 +782,7 @@ async function loadTsu() {
   if (DATA.tsu.features.length || tsuState === "loading") return; tsuState = "loading"; renderGroups();
   try {
     const out = [];
-    for (let off = 0; off < 6000; off += 1000) { const r = await fetch(TSU_URL + `?where=1%3D1&outFields=*&outSR=4326&f=geojson&maxAllowableOffset=0.0003&geometryPrecision=5&resultOffset=${off}&resultRecordCount=1000`); if (!r.ok) throw new Error(r.status); const j = await r.json(); out.push(...(j.features || [])); if ((j.features || []).length < 1000) break; }
+    for (let off = 0; off < 6000; off += 1000) { const r = await fetchT(TSU_URL + `?where=1%3D1&outFields=*&outSR=4326&f=geojson&maxAllowableOffset=0.0003&geometryPrecision=5&resultOffset=${off}&resultRecordCount=1000`); if (!r.ok) throw new Error(r.status); const j = await r.json(); out.push(...(j.features || [])); if ((j.features || []).length < 1000) break; }
     DATA.tsu = { type: "FeatureCollection", features: out }; tsuState = null; map.getSource("tsu")?.setData(DATA.tsu);
   } catch { tsuState = "error"; }
   renderGroups(); renderLegend();
@@ -832,7 +867,7 @@ const COUNTY = { "15001": "Hawaiʻi County", "15003": "City and County of Honolu
 const SCOPES = [["state", "All of Hawaiʻi"], ...Object.entries(COUNTY), ["view", "What the map shows"]];
 $("needScope").append(...SCOPES.map(([k, n]) => h("option", { value: k }, n)));
 $("needScope").value = SCOPES.some(([k]) => k === S.scope) ? S.scope : "state";
-$("needScope").onchange = (e) => { S.scope = e.target.value; save(); refreshPanels(); };
+$("needScope").onchange = (e) => { S.scope = e.target.value; save(); if (S.mode === "whatif" && S.scope !== "view") writeWhatIf({ county: S.scope }); refreshPanels(); };
 const fmtN = (n) => (n >= 0 ? Math.round(n).toLocaleString("en-US") : "–");
 function tractBox(g) { return bbox(g); }
 function inScope(f) {
@@ -871,6 +906,28 @@ function areaSummary(filter = null) {
   area.countyFrac = {};
   for (const k of area.fips) area.countyFrac[k] = whole[k] ? Math.min(1, inside[k] / whole[k]) : 0;
   area.features = F;
+  return area;
+}
+
+/** The what-if area: every tract in scope, weighted by the share of its 2020 Census residents
+ *  inside the hazard's published zone. The same basis the Event planner uses, so the two pages
+ *  give the same people for the same county and hazard. Hurricane counts every resident. */
+let EXP = null;
+function zoneSummary(hazard) {
+  const keys = ["pop", "dis", "lep", "nov", "a65", "a17", "hh"], area = Object.fromEntries(keys.map((k) => [k, 0]));
+  const inside = {}, whole = {}, feats = [];
+  for (const f of DATA.afn.features) { const c = (f.properties.fips || "").slice(0, 5); whole[c] = (whole[c] || 0) + Math.max(0, f.properties.pop || 0); }
+  for (const f of DATA.afn.features.filter(inScope)) {
+    const p = f.properties, w = zshare(EXP, p.fips, hazard);
+    if (!(w > 0)) continue;
+    for (const k of keys) area[k] += Math.max(0, p[k] || 0) * w;
+    const c = p.fips.slice(0, 5); inside[c] = (inside[c] || 0) + Math.max(0, p.pop || 0) * w;
+    f._w = w; feats.push(f);
+  }
+  for (const k of keys) area[k] = Math.round(area[k]);
+  area.tracts = feats.length; area.fips = Object.keys(inside); area.countyFrac = {};
+  for (const k of area.fips) area.countyFrac[k] = whole[k] ? Math.min(1, inside[k] / whole[k]) : 0;
+  area.features = feats; area.weighted = true; area.basis = ZONES[hazard]?.basis || "";
   return area;
 }
 
@@ -975,7 +1032,7 @@ const SCN0 = (k) => {
   const sc = SCENARIOS[k], ph = sc.phases.find((p) => p.roles.length) || sc.phases[0];
   return { hazard: k, phase: ph, ramp: ph.ramp, roles: ph.roles.length ? ph.roles : null, scenario: sc };
 };
-let SCN = SCN0({ tsunami: "tsunami", wildfire: "wildfire", flood: "flood", hurricane: "hurricane" }[hz] || "hurricane");
+let SCN = SCN0(startHz);
 
 /** Recompute the whole plan. Cheap enough to run on every clock tick. */
 let LIVE = null; // the real event in force, or null
@@ -993,7 +1050,7 @@ function recompute() {
     area = areaSummary(hasGeometry ? (f) => test(centroidOf(f)) : null);
     area.basis = hasGeometry ? "census tracts inside the alert's polygons" : "the alert carries no polygon, so the selected area is used";
     fips = area.fips.length ? area.fips : fips;
-  } else area = areaSummary();
+  } else area = EXP ? zoneSummary(SCN.hazard) : areaSummary();
   if (!area.pop) { PLAN = null; return; }
   timer.start();
   PLAN = buildPlan({ hazard: SCN.hazard, area, emp: EMP, shelters: SHEL.list, ramp: SCN.ramp, roles: SCN.roles, fipsFilter: fips, manual: manualSupply() });
@@ -1006,14 +1063,15 @@ function recompute() {
 function renderMode() {
   const chip = $("scn"), live = S.mode === "live";
   chip.hidden = false; chip.dataset.mode = S.mode;
-  chip.textContent = live ? (LIVE ? `Live · ${LIVE.label}` : "Live · no active event") : `What-if · ${SCN.scenario.n} · ${SCN.phase?.n || ""}`;
+  const where = SCOPES.find(([k]) => k === S.scope)?.[1] || "";
+  chip.textContent = live ? (LIVE ? `Live · ${LIVE.label}` : "Live · no active event") : `What-if · ${SCN.scenario.n} · ${where.replace("City and County of ", "")} · ${SCN.phase?.n || ""}`;
   chip.title = live ? "Driven by National Weather Service alerts in force right now" : "A hypothetical scenario you chose on the event clock — not a real event";
   const rl = $("readLine"); if (rl) rl.textContent = `Data read ${stamp(Math.max(READ.nws, READ.shel, READ.svi, READ.emp))}`;
   const bar = $("scMode"); if (!bar) return;
   bar.textContent = "";
   for (const [k, n] of [["live", "Live"], ["whatif", "What-if scenario"]]) {
     const b = h("button", { type: "button", class: "sc-tab", "aria-pressed": String(S.mode === k) }, n);
-    b.onclick = () => { S.mode = k; save(); if (k === "whatif") clock?.redraw(); refreshPanels(); };
+    b.onclick = () => { S.mode = k; save(); if (k === "whatif") adoptWhatIf(readWhatIf(), true); refreshPanels(); };
     bar.append(b);
   }
   bar.append(h("span", { class: "src" }, live ? `NWS read ${stamp(READ.nws)} · refreshes every 5 min` : "Hypothetical. Figures below are for the scenario you set, not a real event."));
@@ -1026,7 +1084,7 @@ function renderMode() {
       h("p", { class: "src" }, "Needs and gaps are only calculated for a real event. To plan ahead, rehearse one:"),
       h("div", { class: "sc-rehearse" }, ...Object.entries(SCENARIOS).map(([k, sc]) => {
         const b = h("button", { type: "button", class: "chipbtn", style: "--hz:" + sc.c }, sc.n);
-        b.onclick = () => { S.mode = "whatif"; save(); clock?.setHazard(k); refreshPanels(); };
+        b.onclick = () => { S.mode = "whatif"; save(); clock?.setHazard(k); writeWhatIf({ hazard: k, county: S.scope === "view" ? null : S.scope }); refreshPanels(); };
         return b;
       }), h("a", { class: "chipbtn", href: "scenarios.html" }, "All counties and hazards →")));
     return;
@@ -1064,7 +1122,7 @@ function refreshPanels() {
     mode: S.mode, live: LIVE, shelters: SHEL.list, score: SHEL.score,
     read: `Shelter feeds read ${stamp(READ.shel)} · NWS ${stamp(READ.nws)} · emPOWER ${stamp(READ.emp)}`,
     onManual: (k, v) => { setManualSupply(k, v); refreshPanels(); },
-    onWhatIf: () => { S.mode = "whatif"; save(); dock.open("scenario"); clock?.redraw(); refreshPanels(); },
+    onWhatIf: () => { S.mode = "whatif"; save(); dock.open("scenario"); adoptWhatIf(readWhatIf(), true); refreshPanels(); },
     loading: !PLAN && (afnState === "loading" || SHEL.state === "loading" || empState === "loading" || !afnRaw),
     onExport: exportPlan,
     onFactors: () => { dock.open("factors"); renderFactors($("facBody")); },
@@ -1076,6 +1134,55 @@ function refreshPanels() {
   rail?.badge("shelters", SHEL.list.length ? SHEL.score.filter((c) => !c.published).length || "" : "", true);
   const short = PLAN?.resources.filter((r) => r.state === "short").length || 0;
   rail?.badge("resources", short || "", short > 0);
+  updateScen();
+}
+
+/* ---------- the what-if on the map ----------
+   A what-if has to show up on the map, not just in the numbers: the census tracts with
+   residents inside the chosen hazard's zone are drawn in the hazard's colour, and the view
+   moves to them whenever the hazard or the area changes. */
+function setScope(c) {
+  if (!c || !SCOPES.some(([k]) => k === c)) return;
+  S.scope = c; $("needScope").value = c; save();
+}
+/** Take the shared what-if (from the Event planner) as this page's scenario. */
+function adoptWhatIf(w, redraw) {
+  if (w.county) setScope(w.county);
+  if (w.hazard && clock && clock.hazard !== w.hazard) clock.setHazard(w.hazard); // emits onChange
+  else if (redraw) clock?.redraw();
+}
+let scenKey = null, scenMode = null;
+function updateScen() {
+  const what = S.mode === "whatif";
+  if (scenMode !== S.mode) {
+    scenMode = S.mode;
+    if (!!S.on.scen !== what) { if (map.isStyleLoaded()) toggle("scen", what); else { S.on.scen = what; save(); } } // style.load applies it
+  }
+  if (!what || !PLAN?.area?.weighted) {
+    if (DATA.scen.features.length) { DATA.scen = EMPTY; map.getSource("scen")?.setData(EMPTY); scenKey = null; }
+    return;
+  }
+  const key = `${SCN.hazard}|${S.scope}|${PLAN.area.features.length}`;
+  if (key === scenKey) return;
+  const moved = scenKey == null || scenKey.split("|").slice(0, 2).join("|") !== `${SCN.hazard}|${S.scope}`;
+  scenKey = key; WHAT_HZ = SCN.hazard;
+  DATA.scen = { type: "FeatureCollection", features: PLAN.area.features.map((f) => ({ type: "Feature", geometry: f.geometry, properties: { w: +f._w.toFixed(3), loc: f.properties.loc || "", fips: f.properties.fips } })) };
+  map.getSource("scen")?.setData(DATA.scen);
+  const c = HZC[WHAT_HZ] || "#fb923c";
+  if (map.getLayer("scen-fill")) { map.setPaintProperty("scen-fill", "fill-color", scenColor(c)); map.setPaintProperty("scen-line", "line-color", c); }
+  renderLegend();
+  if (moved && !(isl && !scenFitOnce)) fitScen();
+  scenFitOnce = true;
+}
+let scenFitOnce = false;
+function fitScen() {
+  const fs = PLAN?.area?.features || []; if (!fs.length) return;
+  let w = 180, s = 90, e = -180, n = -90;
+  for (const f of fs) { const [[a, b], [c, d]] = f._bb || (f._bb = tractBox(f.geometry)); w = Math.min(w, a); s = Math.min(s, b); e = Math.max(e, c); n = Math.max(n, d); }
+  const cs = getComputedStyle(document.documentElement), px = (v) => parseInt(cs.getPropertyValue(v)) || 0;
+  const pad = { left: px("--dkL") + 40, right: px("--dkR") + 40, top: 60, bottom: px("--dkB") + 70 };
+  try { map.fitBounds([[w, s], [e, n]], { padding: pad, duration: dur(1400), maxZoom: 11 }); }
+  catch { try { map.fitBounds([[w, s], [e, n]], { padding: 20, duration: dur(1400), maxZoom: 11 }); } catch {} }
 }
 
 function exportPlan() {
@@ -1158,11 +1265,12 @@ function mapContext() {
     area: PLAN?.area ? { scope: SCOPES.find(([k]) => k === S.scope)?.[1], censusTracts: PLAN.area.tracts, residents: PLAN.area.pop, withDisability: PLAN.area.dis, limitedEnglish: PLAN.area.lep, householdsNoVehicle: PLAN.area.nov, age65plus: PLAN.area.a65, under18: PLAN.area.a17 } : null,
     needs: PLAN ? { atRisk: PLAN.demand.atRisk, evacuating: PLAN.demand.evacuating, inPublicShelter: PLAN.demand.shelterPop, inPublicShelterRange: [PLAN.demand.shelterLow, PLAN.demand.shelterHigh], cmist: Object.fromEntries(Object.entries(PLAN.demand.cmist).map(([k, v]) => [k, { name: v.n, people: v.v, meaning: v.what }])) } : null,
     resources: PLAN ? PLAN.resources.map((r) => ({ resource: r.n, needed: r.need, unit: r.unit, confirmedSupply: r.have, gap: r.gap, state: r.state, whyUnknown: r.blocked || undefined })) : [],
-    shelterReadinessByCounty: SHEL.score.map((x) => ({ county: x.county, publishesShelterData: x.published, sites: x.count, spacesOnRecord: x.capacity, openNow: x.open, attributeCompletenessPct: x.pct, note: x.gap || undefined })),
+    shelterReadinessByCounty: SHEL.score.map((x) => ({ county: x.county, publishesShelterData: x.published, sites: x.count, spacesOnRecord: x.capacity, openNow: x.open, attributeCompletenessPct: x.pct, note: [x.feedNote, x.gap].filter(Boolean).join(" ") || undefined })),
     sheltersStatewide: { sitesOnRecord: SHEL.list.length, spacesOnRecord: SHEL.list.reduce((a, x) => a + (x.capacity || 0), 0), openNow: SHEL.list.filter((x) => x.status === "open").length, countiesPublishing: `${SHEL.score.filter((x) => x.published).length} of 4`, note: "On record is not open. Sites are listed by the counties; only openNow sites are open." },
     sheltersInMapView: { sitesOnRecord: inView.length, spacesOnRecord: inView.reduce((a, x) => a + (x.capacity || 0), 0), openNow: inView.filter((x) => x.status === "open").length },
     powerDependentMedicare: EMP ? Object.values(EMP.byFips).filter((x) => x.benes > 0).map((x) => ({ county: x.county, powerDependent: x.dme, dialysis: x.dialysis, oxygen: x.oxygen })) : null,
     alerts: { source: TIME.live ? "NWS live" : "NWS archive at the playhead", count: TIME.live ? alerts.length : histAlerts.length, list: alertList },
+    warningOutlook: OUTLOOK ? outlookContext(OUTLOOK) : undefined,
     earthquakesPast7Days: { count: qk.length, largest: qk.length ? Math.max(...qk.map((f) => f.properties.mag)) : null },
     markup: marks.filter((m) => m.visible).slice(0, 25).map((m) => ({
       id: m.id, selected: m.id === annotations.selected || undefined,
@@ -1225,22 +1333,50 @@ function publishInsets() {
   r.setProperty("--dkL", px(".dk-left", "width") + "px");
   r.setProperty("--dkR", px(".dk-right", "width") + "px");
   r.setProperty("--dkB", px(".dk-bottom", "height") + "px");
+  placeMapBar();
+}
+/* The view toolbar (Hawaiʻi · Go to island · 3D tilt · Globe) sits directly on top of the
+   History / Event clock panel, centred on it, and moves with it — measured from the panel
+   itself rather than estimated, so it never floats loose or drops behind the panel. It stays
+   hidden until the first measurement so it never jumps on start-up. With the bottom panel
+   closed it rests at the bottom centre of the map. */
+let barObs = null, barZone = null;
+const BAR_REST = 250 + 9 + 10; // standard bottom panel height + its margin + the gap
+function placeMapBar() {
+  const bar = $("mapctl"), ctr = $("center"); if (!bar || !ctr) return;
+  const c = ctr.getBoundingClientRect(), z = $("ws")?.querySelector(".dk-bottom");
+  const open = z && !z.hidden && z.getBoundingClientRect().height > 0;
+  if (z !== barZone) { barObs?.disconnect(); barZone = z; if (z && "ResizeObserver" in window) { barObs = new ResizeObserver(() => requestAnimationFrame(placeMapBar)); barObs.observe(z); } }
+  let x, b;
+  if (open) { const zr = z.getBoundingClientRect(); x = zr.left + zr.width / 2 - c.left; b = c.bottom - zr.top + 10; }
+  else {
+    // Bottom panel closed or moved: the bar keeps the exact spot it has above History / Event
+    // clock in the standard layout, so it never drops to the bottom edge of the map.
+    const cs = getComputedStyle(document.documentElement), L = parseInt(cs.getPropertyValue("--dkL")) || 0, R = parseInt(cs.getPropertyValue("--dkR")) || 0;
+    x = L + (c.width - L - R) / 2; b = BAR_REST;
+  }
+  bar.style.setProperty("--barX", Math.round(x) + "px");
+  bar.style.setProperty("--barB", Math.round(b) + "px");
+  bar.dataset.ready = "1";
 }
 dock = createDock({
   root: $("ws"), center: $("center"), panels: PANELS, presets: PRESETS,
-  initial: "default", storeKey: "allready.ws.v8", overlay: true,
+  initial: "default", storeKey: "allready.ws.v9", overlay: true,
   onLayout: publishInsets,
 });
 dock.mountMenu($("wsMenu"));
+// Keep the map toolbar and guide centred over the visible map when the window changes size.
+addEventListener("resize", () => requestAnimationFrame(publishInsets));
 timeline = createTimeline($("tlHost"), { historyDays: 365, span: 14 * DAY, trail: 7 * DAY, onChange: onTime });
 metrics = createMetrics($("mxHost"), metricState);
 
 // The scenario clock drives the model, the shelter filter and the map chip.
 clock = createScenarioClock($("scHost"), {
-  hazard: { tsunami: "tsunami", wildfire: "wildfire", flood: "flood", hurricane: "hurricane" }[hz] || "hurricane",
+  hazard: startHz,
   onChange: (e) => {
     if (S.mode !== "whatif") return; // live mode is driven by NWS alerts, never by this clock
     SCN = { hazard: e.hazard, phase: e.phase, ramp: e.ramp, roles: e.roles, scenario: e.scenario };
+    writeWhatIf({ hazard: e.hazard, county: S.scope === "view" ? null : S.scope }); // the Event planner opens on the same scenario
     refreshPanels();
   },
 });
@@ -1294,6 +1430,9 @@ renderGroups(); renderLegend();
 // data needs a map to exist. Sources are filled on arrival if they exist and seeded from
 // DATA when the style builds them, so either order works.
 loadAfn(); loadEmp(); loadShelterFeeds(); loadAlerts();
+loadExposure().then((e) => { EXP = e; refreshPanels(); }).catch(() => { /* what-ifs fall back to the whole selected area */ });
+// Another tab (usually the Event planner) changed the shared what-if: follow it.
+onWhatIf((w) => { if (S.mode === "whatif") { adoptWhatIf(w, false); refreshPanels(); } });
 
 map.once("load", () => {
   loadQuakes();
@@ -1307,10 +1446,10 @@ function reloadAll() {
   afnRaw = null; afnState = null; EMP = null; empState = null; SHEL.list = []; SHEL.state = null;
   const b = $("refresh"); if (b) { b.disabled = true; b.dataset.busy = "1"; }
   reloadWx();
-  return Promise.allSettled([loadAfn(), loadEmp(), loadShelterFeeds(), loadAlerts()]).then(() => { if (b) { b.disabled = false; delete b.dataset.busy; } refreshPanels(); });
+  return Promise.allSettled([loadAfn(), loadEmp(), loadShelterFeeds(true), loadAlerts()]).then(() => { if (b) { b.disabled = false; delete b.dataset.busy; } refreshPanels(); });
 }
 setInterval(reloadAll, 30 * 60 * 1000);
 $("refresh")?.addEventListener("click", reloadAll);
 setInterval(loadAlerts, 5 * 60 * 1000);
 setInterval(() => { SHEL.list = []; SHEL.state = null; loadShelterFeeds(); }, 5 * 60 * 1000); // shelter open/closed status stays current
-window.__app = { map, S, toggle, DATA, TIME, dock, timeline, clock, addArc, get plan() { return PLAN; }, mapContext, refreshPanels, get alerts() { return alerts; }, SHEL, get emp() { return EMP; }, FACTORS };
+if (import.meta.env.DEV) window.__app = { map, S, toggle, DATA, TIME, dock, timeline, clock, addArc, get plan() { return PLAN; }, mapContext, refreshPanels, get alerts() { return alerts; }, SHEL, get emp() { return EMP; }, FACTORS };

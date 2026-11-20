@@ -161,7 +161,7 @@ html, body.ins-body { overflow: visible; overflow-y: auto; height: auto; min-hei
 /* Print brief: paper needs black on white, every widget in full, no controls. */
 @media print {
   html, body.ins-body { background: #fff !important; color: #000 !important; }
-  #bar .btn, #bar .ibtn, #bar .lnk, .lang, .card-t, .card-rs, .tile-pick, .palette, .skip, .ai-bar { display: none !important; }
+  #bar .btn, #bar .ibtn, #bar .lnk, .ins-tools, .lang, .card-t, .card-rs, .tile-pick, .palette, .skip, .ai-bar { display: none !important; }
   #bar { position: static; background: none; border: 0; backdrop-filter: none; }
   .grid { display: block; }
   .card { break-inside: avoid; margin: 0 0 12px; max-height: none !important; overflow: visible; background: #fff; border: 1px solid #999; backdrop-filter: none; box-shadow: none; }
@@ -192,3 +192,11 @@ html, body.ins-body { overflow: visible; overflow-y: auto; height: auto; min-hei
 .ins-body #bar .clock i { display: none; }
 @media (max-width: 1500px) { .ins-body .sb > span { display: none; } }
 .ins-body .sb .sel { max-width: 170px; }
+
+/* first-paint guard in each page <head> hides the body until this stylesheet has applied */
+html body { opacity: 1; animation: none; }
+
+/* Dashboard settings sit in their own toolbar under the application bar, as on the Event
+   planner, so the page navigation never gets squeezed off the screen. */
+.ins-tools { position: sticky; top: var(--bar); z-index: 19; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 9px 16px; background: var(--glass-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); border-bottom: 1px solid var(--line); }
+.ins-tools .grow { flex: 1; }

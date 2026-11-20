@@ -212,3 +212,36 @@ details.s-more[open] > summary::before { content: "− "; }
   .s-main { padding: 0; max-width: none; }
   a { color: #000 !important; text-decoration: none; }
 }
+
+.s-grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+@media (max-width: 760px) { .s-grid3 { grid-template-columns: 1fr; } }
+.s-h3 { margin: 0 0 8px; font: 600 13px/1.35 "Public Sans", sans-serif; color: var(--s-ink2); }
+/* Phones: the page list gets its own scrollable row so every page stays one tap away */
+@media (max-width: 760px) {
+  .s-top-in { flex-wrap: wrap; height: auto; padding-top: 6px; gap: 0 12px; }
+  .s-mark { height: 46px; }
+  .s-tools { margin-left: auto; }
+  .s-nav { order: 3; flex: 1 0 100%; height: 42px; margin: 0 -14px; padding: 0 4px; border-top: 1px solid rgba(255, 255, 255, .1); }
+  .s-nav a { padding: 0 10px; font-size: 13.5px; }
+  .s-toolbar { top: 0; position: static; }
+}
+/* 7-day warning outlook: a percentage you can click to rehearse that hazard */
+.ol-t td, .ol-t th { padding: 4px 6px; white-space: nowrap; }
+.ol-t td:first-child, .ol-t th:first-child { padding-left: 14px; } .ol-t td:last-child, .ol-t th:last-child { padding-right: 14px; }
+.ol-t th.cur { color: var(--s-brand); box-shadow: inset 0 -2px 0 var(--s-brand); }
+.ol-t tr.far td { color: var(--s-ink3); }
+.ol { min-width: 46px; padding: 2px 6px; border-radius: 3px; border: 1px solid var(--s-line); background: var(--s-card2); color: var(--s-ink2); font: 600 12.5px/1.4 "IBM Plex Mono", monospace; cursor: pointer; text-align: right; }
+.ol:hover { border-color: var(--s-brand); }
+.ol:focus-visible { outline: 2px solid var(--s-brand); outline-offset: 1px; }
+.ol-elevated { color: var(--s-warn); border-color: color-mix(in srgb, var(--s-warn) 50%, transparent); background: color-mix(in srgb, var(--s-warn) 10%, var(--s-card)); }
+.ol-high { color: #fff; border-color: var(--s-bad); background: var(--s-bad); }
+[data-theme="dark"] .ol-high { color: #1a0d0c; }
+.ol-top { margin: 0; padding: 10px 14px; border-top: 1px solid var(--s-line); font-size: 13px; color: var(--s-ink2); }
+.rel { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; align-items: end; height: 90px; padding: 0 2px; }
+.rel div { position: relative; height: 100%; display: flex; gap: 2px; align-items: flex-end; }
+.rel i { flex: 1; display: block; min-height: 1px; }
+.rel i.p { background: color-mix(in srgb, var(--s-brand) 40%, transparent); } .rel i.o { background: var(--s-brand); }
+.rel-l { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; font: 500 11px "IBM Plex Mono", monospace; color: var(--s-ink3); text-align: center; margin-top: 4px; }
+
+/* first-paint guard in each page <head> hides the body until this stylesheet has applied */
+html body { opacity: 1; animation: none; }

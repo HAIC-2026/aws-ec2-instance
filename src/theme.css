@@ -458,10 +458,12 @@ h4 { font: 600 11px var(--mono); letter-spacing: .12em; text-transform: uppercas
 :root { --dkL: 0px; --dkR: 0px; --dkB: 0px; }
 
 .ctrl {
-  left: calc(var(--dkL) + (100% - var(--dkL) - var(--dkR)) / 2);
-  bottom: calc(var(--dkB) + 16px);
+  left: var(--barX, 50%);
+  bottom: var(--barB, 16px);
   z-index: 6;
+  transition: none;
 }
+.ctrl:not([data-ready]) { visibility: hidden; } /* placed by placeMapBar() before it is shown */
 .maplibregl-ctrl-bottom-right { right: calc(var(--dkR) + 6px); bottom: calc(var(--dkB) + 6px); z-index: 6; }
 .maplibregl-ctrl-bottom-left { left: calc(var(--dkL) + 6px); bottom: calc(var(--dkB) + 6px); z-index: 6; }
 #scn { max-width: 30vw; }
@@ -633,3 +635,29 @@ h4 { font: 600 11px var(--mono); letter-spacing: .12em; text-transform: uppercas
 .mk-seg button { flex: 1; padding: 6px 8px; border-radius: var(--r-ctl, 8px); border: 1px solid var(--line); background: var(--surf2); color: var(--dim); font: 500 12px var(--sans); cursor: pointer; }
 .mk-seg button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .mk-hint + .mk-row { padding: 0 12px 6px; margin-top: 4px; }
+
+/* ---------- one government top bar on every page ----------
+   The map and Insights share the navy application bar the planning pages use, so a reader
+   always knows they are in the same product. Tokens are re-pointed inside the bar only, so
+   every control in it (chips, selects, buttons) reads as light-on-navy in both themes. */
+#bar {
+  --cream: #fff; --dim: rgba(255, 255, 255, .82); --faint: rgba(255, 255, 255, .62);
+  --line: rgba(255, 255, 255, .24); --glass-soft: rgba(255, 255, 255, .07); --glass-hover: rgba(255, 255, 255, .14);
+  --surf2: rgba(255, 255, 255, .14); --accent: #fff; --on-accent: #13294b; --ring: #73c6d6;
+  --glass: rgba(255, 255, 255, .08); --glass-strong: rgba(255, 255, 255, .1); --surf: rgba(255, 255, 255, .08); --surf3: rgba(255, 255, 255, .18);
+  --ok: #63c68e; --warn: #f2c14e; --danger: #ff8a7f;
+  color-scheme: dark; color: #fff;
+  background: #13294b; -webkit-backdrop-filter: none; backdrop-filter: none;
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+}
+[data-theme="dark"] #bar { background: #0a1626; }
+#bar .mark { font: 700 15px/1 "Public Sans", var(--sans); letter-spacing: .12em; color: #fff; }
+#bar .mark span { color: #fff; opacity: .55; }
+#bar .pgnav .lnk { color: rgba(255, 255, 255, .8); font-family: "Public Sans", var(--sans); font-size: 13.5px; font-weight: 500; border-radius: 0; box-shadow: inset 0 -3px 0 transparent; }
+#bar .pgnav .lnk:hover { color: #fff; background: rgba(255, 255, 255, .07); }
+#bar .pgnav .lnk[aria-current="page"] { color: #fff; background: none; font-weight: 600; box-shadow: inset 0 -3px 0 #73c6d6; }
+#bar select, #bar .sel { color: #fff; background-color: rgba(255, 255, 255, .07); border-color: rgba(255, 255, 255, .28); }
+#bar select option { color: #1b1f24; background: #fff; }
+@media (max-width: 1680px) { #bar .sub { display: none; } }
+#bar #scn { max-width: min(300px, 24vw); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 1500px) { #wsMenu span { display: none; } #wsMenu.wide { padding: 0 9px; } }

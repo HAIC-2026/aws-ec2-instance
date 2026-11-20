@@ -3,10 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="./boot.js"></script>
+<meta name="color-scheme" content="light dark">
+<style>/* first paint: page colour, no unstyled flash, smooth page-to-page */
+html{background:#e9e9ec}html[data-theme=dark]{background:#050506}
+@view-transition{navigation:auto}
+@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
+::view-transition-old(root),::view-transition-new(root){animation-duration:.16s}
+body{opacity:0;animation:ar-show 0s 1s forwards}
+@keyframes ar-show{to{opacity:1}}
+</style>
 <title>AllReady · Insights</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./fonts/fonts.css">
 </head>
 <body class="ins-body">
 <a class="skip" href="#ins">Skip to the dashboard</a>
@@ -14,9 +22,6 @@
   <a class="mark" href="home.html" aria-label="AllReady home">All<span>Ready</span></a>
   <span class="sub">Insights · ESF-6 gaps and readiness</span>
   <div class="grow"></div>
-  <div id="scopebar" class="scopebar"></div>
-  <button id="addWidget" class="btn" type="button">+ Add widget</button>
-  <button id="printBtn" class="btn ghost" type="button">Print brief</button>
   <nav id="pgnav" class="pgnav" aria-label="Pages"></nav>
   <div id="theme-host"></div>
   <button id="refresh" class="ibtn" type="button" aria-label="Re-read all data sources now" title="Re-read all data sources now"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button>
@@ -24,6 +29,12 @@
   <div class="clock"><span id="clk">--:--:-- HST</span><i>Public data only · no PII</i></div>
 </header>
 
+<div class="ins-tools" role="region" aria-label="Dashboard settings">
+  <div id="scopebar" class="scopebar"></div>
+  <div class="grow"></div>
+  <button id="addWidget" class="btn" type="button">+ Add widget</button>
+  <button id="printBtn" class="btn ghost" type="button">Print brief</button>
+</div>
 <main id="ins" aria-label="Insights dashboard">
   <div id="status" class="ins-status" role="status">Loading census tracts, county shelter feeds and HHS emPOWER…</div>
   <div id="grid" class="grid" aria-label="Dashboard widgets"></div>

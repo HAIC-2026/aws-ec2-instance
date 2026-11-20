@@ -164,22 +164,24 @@ export const WIDGETS = {
       const btn = el("button", "btn ghost", "Regenerate"); btn.type = "button";
       const st = el("span", "src");
       bar.append(st, btn); host.append(out, bar);
+      // The grid re-renders as feeds arrive; always write into the box that is on screen now.
+      SUMMARY.out = out; SUMMARY.st = st; SUMMARY.btn = btn;
       const gen = async (force) => {
         const h = await health();
         if (!h.ai) { out.textContent = ""; out.append(el("p", "empty", h.offline ? "The assistant server is not running here, so no summary can be written. Start the app with a model configured (README → “Turn on the assistant”)." : `No model is answering (${h.model}). Start Ollama or set LLM_API_KEY, then press Regenerate.`)); st.textContent = ""; return; }
         if (!force && SUMMARY.sig === sig && SUMMARY.text) { renderText(out, SUMMARY.text); st.textContent = `${h.model} · ${SUMMARY.at}`; return; }
-        if (SUMMARY.busy === sig) return;
-        SUMMARY.busy = sig; out.textContent = "Writing from the current figures…"; btn.disabled = true;
+        if (SUMMARY.busy) { if (SUMMARY.partial) renderText(out, SUMMARY.partial); else out.textContent = "Writing from the current figures… a local model takes 10–40 seconds."; btn.disabled = true; return; }
+        SUMMARY.busy = sig; SUMMARY.partial = ""; out.textContent = "Writing from the current figures… a local model takes 10–40 seconds."; btn.disabled = true;
         try {
           const text = await ask({
             context: ctx.aiContext(),
             messages: [{ role: "user", content: "Write the briefing summary for this dashboard from the snapshot: 1) the situation in one or two sentences, 2) the three figures that matter most and why, 3) which gaps are real shortages and which are missing county data, 4) the single most useful next action and who would take it. Under 170 words. Use only numbers in the snapshot." }],
-            onText: (_, all) => renderText(out, all),
+            onText: (_, all) => { SUMMARY.partial = all; renderText(SUMMARY.out, all); },
           });
           Object.assign(SUMMARY, { sig, text, at: new Date().toLocaleTimeString("en-US", { timeZone: "Pacific/Honolulu", hour: "numeric", minute: "2-digit" }) + " HST" });
-          st.textContent = `${h.model} · ${SUMMARY.at}`;
-        } catch (e) { out.textContent = ""; out.append(el("p", "q-err", e.message)); }
-        finally { SUMMARY.busy = null; btn.disabled = false; }
+          renderText(SUMMARY.out, text); SUMMARY.st.textContent = `${h.model} · ${SUMMARY.at} · written from the figures on this page`;
+        } catch (e) { SUMMARY.out.textContent = ""; SUMMARY.out.append(el("p", "q-err", e.message)); }
+        finally { SUMMARY.busy = null; SUMMARY.partial = ""; SUMMARY.btn.disabled = false; }
       };
       btn.onclick = () => gen(true);
       gen(false);
@@ -228,10 +230,11 @@ export const WIDGETS = {
         const box = el("div", "rd-c");
         const h = el("div", "rd-h");
         h.append(el("b", null, c.name));
-        const g = el("span", "sh-grade", c.published ? `${c.pct}%` : "no feed");
+        const g = el("span", "sh-grade", c.feedDown ? "no answer" : c.published ? `${c.pct}%` : "no feed");
         g.dataset.g = c.grade; h.append(g);
         box.append(h, el("p", "src", `${c.agency} · “${c.term}”`));
-        if (!c.published) { box.append(el("p", "sh-none", c.gap)); host.append(box); continue; }
+        if (c.feedNote) box.append(el("p", "sh-none", c.feedNote));
+        if (!c.published || c.feedDown) { if (!c.published) box.append(el("p", "sh-none", c.gap)); host.append(box); continue; }
         const bars = el("div", "sh-attrs");
         for (const a of c.attrs) {
           const r = el("div", "sh-a");

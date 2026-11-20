@@ -34,15 +34,16 @@ export function renderShelters(host, { shelters, score, actions, onZoomCounty, l
     const box = el("div", "sh-c");
     const h = el("div", "sh-ch");
     h.append(el("b", null, c.name));
-    const g = el("span", "sh-grade", c.published ? `${c.pct}%` : "no feed");
+    const g = el("span", "sh-grade", c.feedDown ? "no answer" : c.published ? `${c.pct}%` : "no feed");
     g.dataset.g = c.grade;
     h.append(g);
     box.append(h);
     box.append(el("p", "sh-term", `${c.agency} · calls them “${c.term}”`));
+    if (c.feedNote) box.append(el("p", "sh-none", c.feedNote));
 
     if (c.url) { const a = el("a", "link", "Open this county’s public feed ↗"); a.href = c.url; a.target = "_blank"; a.rel = "noopener noreferrer"; box.append(a); }
-    if (!c.published) {
-      box.append(el("p", "sh-none", c.gap));
+    if (!c.published || c.feedDown) {
+      if (!c.published) box.append(el("p", "sh-none", c.gap));
       scroll.append(box);
       continue;
     }

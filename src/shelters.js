@@ -179,9 +179,11 @@ const known = (s, k) => (k === "role" ? s.role !== "unknown" : k === "capacity" 
  * Readiness scorecard: per county, how much of what a planner needs is actually published.
  * This is the "highlight potential gaps" deliverable — the gaps are in the data, not just the map.
  */
-export function readiness(shelters) {
+export function readiness(shelters, errors = []) {
   return COUNTIES.map((c) => {
     const mine = shelters.filter((s) => s.fips === c.fips);
+    const err = errors.find((x) => x.county === c.short);
+    const down = !!err && !err.stale; // no answer and no saved copy: missing, not zero
     const attrs = ATTRS.map((a) => {
       const have = mine.filter((s) => known(s, a.k)).length;
       return { ...a, have, of: mine.length, pct: mine.length ? Math.round((have / mine.length) * 100) : 0 };
@@ -195,19 +197,51 @@ export function readiness(shelters) {
       capacityKnownFor: mine.filter((s) => s.capacity != null).length,
       open: mine.filter((s) => s.status === "open").length,
       attrs, pct,
-      grade: !c.published ? "none" : pct >= 75 ? "good" : pct >= 40 ? "partial" : "thin",
+      grade: !c.published || down ? "none" : pct >= 75 ? "good" : pct >= 40 ? "partial" : "thin",
+      feedDown: down, feedNote: down ? `Feed did not answer this time (${err.msg}). This county's shelters are missing from every figure, not zero.` : err?.msg || "",
     };
   });
 }
 
-/** Load every county in parallel. One county failing never takes the others down. */
-export async function loadShelters() {
-  const settled = await Promise.allSettled(COUNTIES.map((c) => c.load()));
+/** Load every county in parallel. One county failing never takes the others down.
+
+   Three layers, each dated, so a planner never sees an empty county without being told why:
+   1. the live feed, reused for 5 minutes so moving between pages does not re-ask (and FEMA's
+      service throttles clients that ask too often);
+   2. this browser's last good copy, shown if the feed is slow (6 s) or down;
+   3. the snapshot shipped with the app (scripts/snapshot-shelters.mjs), for a first visit on a
+      bad connection. Every list is a public facility record. */
+const LAST = (fips) => "allready.shelters.last." + fips;
+const FRESH_MS = 5 * 60 * 1000;
+let snapP = null;
+const snapshot = () => (snapP ||= fetch(((import.meta.env && import.meta.env.BASE_URL) || "./") + "data/shelters-snapshot.json").then((r) => (r.ok ? r.json() : null)).catch(() => null));
+async function loadCounty(c, force) {
+  let saved = null; try { saved = JSON.parse(localStorage.getItem(LAST(c.fips))); } catch {}
+  if (!force && saved?.rows?.length && Date.now() - saved.at < FRESH_MS) return { rows: saved.rows, readAt: saved.at };
+  try {
+    const rows = await (saved?.rows?.length ? Promise.race([c.load(), new Promise((_, no) => setTimeout(() => no(new Error("no answer within 6 s")), 6000))]) : c.load());
+    try { localStorage.setItem(LAST(c.fips), JSON.stringify({ at: Date.now(), rows })); } catch { /* storage full or blocked */ }
+    return { rows, readAt: Date.now() };
+  } catch (e) {
+    if (saved?.rows?.length) return { rows: saved.rows, staleAt: saved.at, err: e };
+    const snap = await snapshot();
+    if (snap?.counties?.[c.fips]?.length) return { rows: snap.counties[c.fips], staleAt: Date.parse(snap.generated), snapshot: true, err: e };
+    throw e;
+  }
+}
+const when = (t) => new Date(t).toLocaleString("en-US", { timeZone: "Pacific/Honolulu", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) + " HST";
+
+export async function loadShelters({ force = false } = {}) {
+  const settled = await Promise.allSettled(COUNTIES.map((c) => loadCounty(c, force)));
   const all = [];
   const errors = [];
   settled.forEach((r, i) => {
     const c = COUNTIES[i];
     if (r.status === "rejected") { errors.push({ county: c.short, msg: String(r.reason?.message || r.reason) }); return; }
+    if (r.value.staleAt) errors.push({ county: c.short, stale: true, msg: r.value.snapshot
+      ? `Live feed is not answering right now; showing the copy shipped with AllReady, read ${when(r.value.staleAt)}. It retries every 5 minutes.`
+      : `Live feed is slow to answer; showing the list read ${when(r.value.staleAt)}. It retries every 5 minutes.` });
+    r.value = r.value.rows;
     r.value.forEach((s, j) => {
       if (!Number.isFinite(s.lon) || !Number.isFinite(s.lat)) return; // unmappable row, skip
       all.push({

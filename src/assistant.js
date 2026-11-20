@@ -58,7 +58,7 @@ export function renderText(host, text) {
   const inline = (parent, s) => {
     s.split(/(\*\*[^*]+\*\*)/g).forEach((part) => {
       if (/^\*\*[^*]+\*\*$/.test(part)) parent.append(el("strong", null, part.slice(2, -2)));
-      else if (part) parent.append(document.createTextNode(part));
+      else if (part) parent.append(document.createTextNode(part.replace(/\*\*/g, ""))); // an unclosed ** while text is still streaming
     });
   };
   for (const raw of String(text).split("\n")) {

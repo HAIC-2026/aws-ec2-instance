@@ -106,6 +106,33 @@ The AFN measures live in `src/svi.js`, planning factors in `src/model.js`, the s
 - **Rejected:** a shared server-side database of partner contacts.
 - **Why:** it is the first rung up from a phone call without creating a store of personal data to secure. A State deployment would move it behind sign-in.
 
+### 13. The warning outlook is a small, readable model trained on public records
+
+- **Chosen:** one L2-regularised logistic regression per warning type (Red Flag, Flood Watch or Flash Flood Warning, High Wind Warning), trained by `scripts/train-outlook.mjs` on every NWS Honolulu warning since 2022 and the forecasts actually issued for those days, then run in the browser on the next seven days of forecast.
+- **Rejected:** a gradient-boosted or neural model (a few points of AUC at most on this little data, and no weights a planner can read); a language model asked to judge the forecast (no calibration, no way to test it); predicting shelter turnout directly (five sourced events is not training data).
+- **Why:** the brief asks for "a faster path from a forecast to a coordinated plan". Predicting which warnings are likely is the step NWS records let us learn and test honestly. The planner then rehearses the plan for that county and hazard in one click. The model is scored on 2025–2026 data it never saw, the scores are published on the Data health page, and the browser computes its inputs with the same function the trainer uses (`featureRow` in `src/outlook.js`).
+- **Boundaries:** it scores weather at fixed points, never people; it is labelled "not a forecast or warning" wherever it appears; it never triggers anything. Tsunamis and earthquakes are out of its reach, and hurricanes are too rare to learn from.
+
+### 14. Hazard zones explain themselves
+
+- **Chosen:** clicking the map asks FEMA what flood zone is under the point (the layer is an image, so it cannot be read from the picture) and translates the code into one plain sentence and whether those residents are counted in AllReady's flood scenario. Tsunami zones do the same.
+- **Why:** "Zone AE" means nothing to most of the people who need to act on it.
+
+### 15. Every outside request is bounded, and a failure is never a zero
+
+- **Chosen:** all external requests go through `src/net.js`, which gives each a time limit (12–15 s, 8 s for forecasts) and sends no credentials. Each county's shelter list is kept as a dated copy; with a copy in hand a slow feed gets 6 s before the copy is shown. A county with neither reads "missing from every figure, not zero".
+- **Why:** found in testing: FEMA's shelter service stopped answering, and pages that waited on it said "Loading…" indefinitely. In an emergency the network is at its worst, and a planner must never read a dead feed as "this county has no shelters".
+
+### 16. Every page explains itself
+
+- **Chosen:** a guide strip on every page (its place in the workflow, what it is for, four steps), a **?** help window with a glossary, and the same navy application bar and page names everywhere.
+- **Why:** the people who will use this are DHS and county staff, not GIS analysts. A first-time reader should know within ten seconds what a page is for and what to press.
+
+### 17. One what-if, shared by the Event planner and the Live map
+
+- **Chosen:** both pages read and write one record (`src/whatif.js`); the map's what-if counts residents inside the hazard's zone exactly as the Event planner does, and draws those census tracts in the hazard's colour.
+- **Why:** a planner who rehearses "Maui · Wildfire" and then opens the map must see the same scenario and the same people. Before, the map kept its own hazard, counted whole counties, and drew nothing, so the two pages disagreed.
+
 ## Data flow for one question
 
 1. Browser reads feeds → `shelters.js`, `svi.js`, `empower.js` normalise them.
@@ -122,6 +149,8 @@ Slow-changing facts are placed first in the snapshot so a local model reuses wha
 | Data | Re-read |
 |---|---|
 | NWS alerts, county shelter feeds | every 5 minutes |
+| Forecast for the warning outlook | every 60 minutes |
+| Warning-outlook weights | retrained by hand each season (`node scripts/train-outlook.mjs`) |
 | Census tracts, emPOWER, weather grid | every 30 minutes, and on the refresh button |
 | Alert history, hazard-zone layers | on demand |
 
@@ -129,9 +158,11 @@ Slow-changing facts are placed first in the snapshot so a local model reuses wha
 
 | If this fails | The app does this |
 |---|---|
-| One county's shelter service | Marks that county unavailable; other counties and all other panels continue |
+| One county's shelter service | Reuses a list read in the last 5 minutes; otherwise shows this browser's last copy, then the snapshot shipped with the app, each with the time it was read; with none, says the county is missing (not zero); other counties continue |
+| Any outside service that hangs | Cut off after its time limit (`src/net.js`) and reported unavailable; the page never waits forever |
 | NWS alerts | Says the feed is unavailable; does not assume “no event” silently |
 | Weather grid (rate limit) | Keeps showing the last reading, dated, and says why |
+| Forecast for the warning outlook | Tries Open-Meteo's second host after 8 s, then shows the last copy with its time, then says no outlook is available; scenarios still work |
 | The model or Ollama | Assistant panel explains what to start; everything else works |
 | The whole server (static hosting) | All pages work; assistant reports it is offline |
 | WebGL unavailable | Map page shows a message; Insights and Home still work |

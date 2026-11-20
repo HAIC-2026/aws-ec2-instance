@@ -12,6 +12,7 @@
      from Open-Meteo (forecast API for recent weeks, its ERA5-based archive beyond that).
 
    All public, keyless, area-level. */
+import { fetchT } from "./net.js";
 
 const IEM = "https://mesonet.agron.iastate.edu/json/vtec_events_bystate.py?state=HI&year=";
 const NWS = "https://api.weather.gov";
@@ -32,7 +33,7 @@ export function loadAlertHistory() {
   if (events) return Promise.resolve(events);
   if (loading) return loading;
   const y = new Date().getUTCFullYear();
-  loading = Promise.allSettled([y - 1, y].map((yr) => fetch(IEM + yr).then((r) => (r.ok ? r.json() : { events: [] }))))
+  loading = Promise.allSettled([y - 1, y].map((yr) => fetchT(IEM + yr, {}, 30000).then((r) => (r.ok ? r.json() : { events: [] }))))
     .then((res) => {
       const lo = Date.now() - 366 * DAY;
       events = res.flatMap((r) => (r.status === "fulfilled" ? r.value.events || [] : []))
@@ -59,7 +60,7 @@ const geomCache = new Map();
 async function index() {
   if (zoneIndex) return zoneIndex;
   zoneIndex = new Map();
-  const lists = await Promise.allSettled(["forecast", "county"].map((t) => fetch(`${NWS}/zones?area=HI&type=${t}`, HDR).then((r) => r.json())));
+  const lists = await Promise.allSettled(["forecast", "county"].map((t) => fetchT(`${NWS}/zones?area=HI&type=${t}`, HDR).then((r) => r.json())));
   for (const l of lists) if (l.status === "fulfilled") for (const f of l.value.features || []) {
     const k = f.properties.name.toLowerCase();
     if (!zoneIndex.has(k)) zoneIndex.set(k, f.properties["@id"] || f.id);
@@ -81,7 +82,7 @@ async function zoneGeometry(name) {
   const url = idx.get(name.toLowerCase());
   if (!url) return null;
   if (geomCache.has(url)) return geomCache.get(url);
-  const g = await pooled(() => fetch(url, HDR).then((r) => (r.ok ? r.json() : null)).then((j) => j?.geometry || null));
+  const g = await pooled(() => fetchT(url, HDR).then((r) => (r.ok ? r.json() : null)).then((j) => j?.geometry || null));
   if (g) geomCache.set(url, g);
   return g;
 }
@@ -125,7 +126,7 @@ export function weatherDay(points, vars, day) {
   const host = old ? "https://archive-api.open-meteo.com/v1/archive" : "https://api.open-meteo.com/v1/forecast";
   const u = `${host}?hourly=${vars}&wind_speed_unit=kmh&timezone=GMT&start_date=${day}&end_date=${day}` +
     `&latitude=${points.map((p) => p[0])}&longitude=${points.map((p) => p[1])}`;
-  const p = fetch(u).then((r) => { if (!r.ok) throw new Error("open-meteo " + r.status); return r.json(); })
+  const p = fetchT(u).then((r) => { if (!r.ok) throw new Error("open-meteo " + r.status); return r.json(); })
     .then((j) => (Array.isArray(j) ? j : [j]).map((x) => x.hourly))
     .catch((e) => { wxCache.delete(key); throw e; });
   wxCache.set(key, p);

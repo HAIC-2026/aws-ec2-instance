@@ -12,6 +12,7 @@ import { backtest, reading, rate } from "./backtest.js";
 import { fetchSVI, rankTracts } from "./svi.js";
 import { loadExposure, COUNTY_LIST, ZONES } from "./exposure.js";
 import { COUNTIES } from "./shelters.js";
+import { loadModel, OUTLOOK_HAZARDS } from "./outlook.js";
 
 const $ = (id) => document.getElementById(id);
 function h(tag, attrs = {}, ...kids) {
@@ -45,9 +46,9 @@ const SRC = [
   { n: "2020 Census blocks (TIGERweb)", owner: "U.S. Census Bureau", use: "Where residents live inside each hazard zone", lvl: 3, fresh: "Decennial; processed by scripts/build-exposure.mjs", url: "https://tigerweb.geo.census.gov/", probe: count("https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Tracts_Blocks/MapServer/2", "STATE='15' AND POP100>0"), note: "" },
   { n: "Hawaiʻi Statewide GIS — hazard zones", owner: "Office of Planning and Sustainable Development", use: "Tsunami evacuation zones, fire risk areas, FEMA flood zones (DFIRM)", lvl: 3, fresh: "As republished by the State", url: "https://geoportal.hawaii.gov/", probe: count(`${HAZ}/11`), note: "" },
   { n: "FEMA National Flood Hazard Layer", owner: "FEMA", use: "Flood hazard map layer", lvl: 3, fresh: "As published by FEMA", url: "https://www.fema.gov/flood-maps/national-flood-hazard-layer", probe: "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer?f=json", note: "" },
-  { n: "Iowa Environmental Mesonet — NWS alert archive", owner: "Iowa State University", use: "A year of past alerts for History replay", lvl: 2, fresh: "Archive, read on demand", url: "https://mesonet.agron.iastate.edu/vtec/", probe: `https://mesonet.agron.iastate.edu/json/vtec_events_bystate.py?state=HI&year=${new Date().getFullYear()}`, note: "" },
+  { n: "Iowa Environmental Mesonet — NWS alert archive", owner: "Iowa State University", use: "Past alerts for History replay, and the labels the warning-outlook model learned from", lvl: 2, fresh: "Archive, read on demand", url: "https://mesonet.agron.iastate.edu/vtec/", probe: `https://mesonet.agron.iastate.edu/json/vtec_events_bystate.py?state=HI&year=${new Date().getFullYear()}`, note: "" },
   { n: "USGS earthquakes", owner: "U.S. Geological Survey", use: "Earthquakes M2.5+", lvl: 3, fresh: "Live", url: "https://earthquake.usgs.gov/", probe: `https://earthquake.usgs.gov/fdsnws/event/1/count?minlatitude=18&maxlatitude=23&minlongitude=-161&maxlongitude=-154&minmagnitude=2.5&starttime=${new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10)}`, note: "" },
-  { n: "Open-Meteo", owner: "Open-Meteo (open data)", use: "Weather layers and hourly replay", lvl: 3, fresh: "Hourly; cached 30 min", url: "https://open-meteo.com/", probe: "https://api.open-meteo.com/v1/forecast?latitude=21.3&longitude=-157.85&current=temperature_2m", note: "Free tier is rate-limited per network" },
+  { n: "Open-Meteo", owner: "Open-Meteo (open data)", use: "Weather layers, hourly replay, and the forecast the warning outlook reads", lvl: 3, fresh: "Hourly; cached 30–60 min", url: "https://open-meteo.com/", probe: "https://api.open-meteo.com/v1/forecast?latitude=21.3&longitude=-157.85&current=temperature_2m", note: "Free tier is rate-limited per network" },
   { n: "Partner capacity (Red Cross, Salvation Army, VOAD, paratransit)", owner: "Each partner organisation", use: "Cots, meals, staff, transport, interpreters", lvl: 0, fresh: "Phone call; recorded on Partners & roles", url: "roles.html", probe: null, note: "No public source; the register is the first rung" },
 ];
 
@@ -134,6 +135,69 @@ renderSources();
       h("p", { class: "s-src" }, "The Near miss intensity in the Event planner uses the highest turnout observed per hazard in this table."));
   }
 })();
+
+/* ---------------- warning-outlook model check ---------------- */
+loadModel().then((m) => {
+  const DRV = { gust: ["stronger gusts", "weaker gusts"], wind: ["stronger winds", "lighter winds"], rhmin: ["more humid air", "drier air"], vpd: ["drier air", "moister air"], rain: ["heavier rain", "less rain"], rainh: ["longer spells of rain", "rain in short, intense bursts"], rain3: ["wet ground from the days before", "dry days before"], dry14: ["a wet fortnight", "a dry fortnight"], tmax: ["hotter days", "cooler days"] };
+  const p0 = (x) => Math.round(x * 100) + "%";
+  $("olCheck").replaceChildren(h("table", { class: "s-t" },
+    h("thead", {}, h("tr", {}, ["Warning predicted", "Warning days in test", "Ranks a warning day above a quiet day", "Better than the seasonal average", "Warning days it rated elevated or high", "Days it rated high that had the warning", "What raises the chance"].map((c, i) => h("th", { class: i > 0 && i < 6 ? "r" : null }, c)))),
+    h("tbody", {}, OUTLOOK_HAZARDS.map((z) => {
+      const M = m.models[z.k], t = M.test;
+      return h("tr", {},
+        h("td", {}, h("b", {}, M.label), h("span", { class: "sub" }, `${z.n} · rehearses the ${z.plan} plan`)),
+        h("td", { class: "num" }, fmt(t.events), h("span", { class: "sub" }, `of ${fmt(t.days)} county-days`)),
+        h("td", { class: "num" }, p0(t.auc), h("span", { class: "sub" }, "AUC; 50% is a coin toss")),
+        h("td", { class: "num" }, t.skill > 0 ? p0(t.skill) : "No", h("span", { class: "sub" }, "Brier skill score")),
+        h("td", { class: "num" }, t.events ? `${fmt(t.caughtElevated)} of ${fmt(t.events)}` : "–"),
+        h("td", { class: "num" }, t.flaggedHigh ? `${fmt(t.hitsHigh)} of ${fmt(t.flaggedHigh)}` : "none rated high"),
+        h("td", {}, M.drivers.filter((d) => DRV[d.k]).slice(0, 3).map((d) => DRV[d.k][d.dir === "up" ? 0 : 1]).join("; ")));
+    }))));
+  $("olRel").replaceChildren(h("div", { class: "s-grid3" }, OUTLOOK_HAZARDS.map((z) => {
+    const b = m.models[z.k].test.bins, top = Math.max(0.05, ...b.map((x) => Math.max(x.predicted || 0, x.observed || 0)));
+    return h("div", {}, h("h3", { class: "s-h3" }, `${m.models[z.k].label}: predicted vs what happened`),
+      h("div", { class: "rel", role: "img", "aria-label": b.map((x) => `${p0(x.lo)}–${p0(x.hi)}: predicted ${x.predicted == null ? "none" : p0(x.predicted)}, observed ${x.observed == null ? "none" : p0(x.observed)}, ${x.n} days`).join("; ") },
+        b.map((x) => h("div", { title: `${x.n} days` }, h("i", { class: "p", style: `height:${((x.predicted || 0) / top) * 100}%` }), h("i", { class: "o", style: `height:${((x.observed || 0) / top) * 100}%` })))),
+      h("div", { class: "rel-l" }, b.map((x) => h("span", {}, `${p0(x.lo)}+`))));
+  })), h("p", { class: "s-src", style: "padding:8px 0 0" }, "Light bar: average chance the model gave. Dark bar: share of those days that really had the warning. Close bars mean the percentages can be taken at face value."));
+  $("olMeth").textContent = `Trained ${m.train.from} to ${m.train.to} (${fmt(m.train.rows)} county-days), tested ${m.test.from} to ${m.test.to} (${fmt(m.test.rows)}). ${m.method} Inputs: the forecast actually issued for each day at 4–6 points per county (Open-Meteo forecast archive) and the rain in the days before. Labels: every NWS Honolulu watch and warning in the period (Iowa Environmental Mesonet). Retrain with node scripts/train-outlook.mjs. It scores weather, never people, and issues no alerts.`;
+}).catch(() => $("olCheck").replaceChildren(h("p", { class: "s-empty", style: "margin:14px" }, "The model file did not load.")));
+
+/* ---------------- data in this browser (governance) ---------------- */
+// Every key AllReady writes, described in plain words. Anything unrecognised is still listed.
+const LOCAL = [
+  [/^allready\.markup\./, "Map markup", "Shapes, icons and notes drawn on the Live map; may include facility or agency points of contact", "Planner entry. Organisations and facilities only, never residents", "Until you delete it"],
+  [/^allready\.partners\./, "Partner commitments", "What partner organisations committed after a call (Coordination)", "Planner entry. The form refuses phone numbers, emails and ID numbers", "Until you remove it; flagged for re-confirmation after 30 days"],
+  [/^allready\.supply\./, "Supply counts entered on the map", "Resource counts a planner typed in during an event", "Planner entry. Counts only", "Until you clear it"],
+  [/^allready\.shelters\.last\./, "Last shelter list per county", "A copy of each county's public shelter feed: reused for 5 minutes so pages do not re-ask, and shown if the feed stops answering", "Public facility records", "Replaced on every successful read"],
+  [/^allready\.wx\./, "Weather grid", "The last weather readings for the map layers", "Public", "30 minutes"],
+  [/^allready\.outlook\./, "Forecast for the warning outlook", "The last 7-day forecast the model read", "Public", "60 minutes"],
+  [/^allready\.scenario\./, "Current what-if", "County, hazard and intensity, shared by the Event planner and the Live map", "Settings", "Until changed"],
+  [/^allready\.(ws|insights)\./, "Panel layout", "How the Live map and Insights panels are arranged", "Settings", "Until changed"],
+  [/^allready\.(v\d+|theme|lang|guide)/, "Preferences", "Layers, light or dark, language, and which guides you hid", "Settings", "Until changed"],
+];
+function renderLocal() {
+  let keys = []; try { keys = Object.keys(localStorage).filter((k) => k.startsWith("allready.")).sort(); } catch { /* storage blocked */ }
+  const size = (k) => { try { return (localStorage.getItem(k) || "").length; } catch { return 0; } };
+  const groups = new Map();
+  for (const k of keys) { const d = LOCAL.find(([re]) => re.test(k)) || [null, "Other setting", k, "Settings", "Until changed"]; const g = groups.get(d[1]) || { d, keys: [] }; g.keys.push(k); groups.set(d[1], g); }
+  const kb = (n) => (n < 1024 ? `${n} B` : `${(n / 1024).toFixed(1)} KB`);
+  $("local").replaceChildren(!keys.length ? h("p", { class: "s-empty", style: "margin:16px" }, "Nothing is stored in this browser.") : h("table", { class: "s-t" },
+    h("thead", {}, h("tr", {}, ["Item", "What it holds", "Kind of data", "Kept", "Size", ""].map((c, i) => h("th", { class: i === 4 ? "r" : null }, c)))),
+    h("tbody", {}, [...groups.values()].map(({ d, keys: ks }) => h("tr", {},
+      h("td", {}, h("b", {}, d[1])), h("td", {}, d[2]), h("td", {}, d[3]), h("td", {}, d[4]),
+      h("td", { class: "num" }, kb(ks.reduce((t, k) => t + size(k), 0))),
+      h("td", { class: "no-print" }, h("button", { class: "s-btn sm", type: "button", "aria-label": `Clear ${d[1]}`, onclick: () => {
+        if (/markup|commitments|Supply/.test(d[1]) && !confirm(`Delete ${d[1].toLowerCase()} from this browser? This cannot be undone. Export first if you need a copy.`)) return;
+        ks.forEach((k) => { try { localStorage.removeItem(k); } catch {} }); renderLocal();
+      } }, "Clear")))))));
+}
+$("clearAll").onclick = () => {
+  if (!confirm("Delete everything AllReady has stored in this browser, including map markup and partner commitments? This cannot be undone. Export first if you need a copy.")) return;
+  try { Object.keys(localStorage).filter((k) => k.startsWith("allready.")).forEach((k) => localStorage.removeItem(k)); } catch {}
+  renderLocal();
+};
+renderLocal();
 
 /* ---------------- factors ---------------- */
 {

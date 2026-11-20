@@ -16,6 +16,7 @@
    and leaves it only if the planner exports the file. */
 
 import * as maplibregl from "maplibre-gl";
+import { cleanMarkup, MAX_IMPORT_BYTES } from "./markupclean.js";
 
 const KEY = "allready.markup.v1";
 const NS = "http://www.w3.org/2000/svg";
@@ -440,7 +441,21 @@ export function createAnnotations({ map, host, font = () => ["Noto Sans Regular"
     const ex = el("button", "btn ghost", "Export"); ex.type = "button";
     ex.onclick = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(items, null, 1)], { type: "application/json" })); a.download = "allready-markup.json"; a.click(); };
     const im = el("button", "btn ghost", "Import"); im.type = "button";
-    im.onclick = () => { const f = el("input"); f.type = "file"; f.accept = "application/json"; f.onchange = async () => { try { const j = JSON.parse(await f.files[0].text()); if (Array.isArray(j)) { items = j.filter((x) => x && x.id && x.kind); save(); refresh(); } } catch {} }; f.click(); };
+    im.onclick = () => {
+      const f = el("input"); f.type = "file"; f.accept = "application/json,.json";
+      f.onchange = async () => {
+        const file = f.files?.[0]; if (!file) return;
+        if (file.size > MAX_IMPORT_BYTES) { alert("That file is larger than 2 MB. A markup file is usually a few kilobytes."); return; }
+        let j; try { j = JSON.parse(await file.text()); } catch { alert("That file is not AllReady markup (it is not valid JSON)."); return; }
+        if (!Array.isArray(j)) { alert("That file is not AllReady markup."); return; }
+        const clean = j.slice(0, 2000).map((x) => cleanMarkup(x, uid, ICONS)).filter(Boolean);
+        const have = new Set(items.map((x) => x.id)), add = clean.filter((x) => !have.has(x.id));
+        // Added to what is already on the map, never replacing it
+        items = [...items, ...add]; save(); refresh();
+        alert(`Imported ${add.length} item${add.length === 1 ? "" : "s"}${j.length - clean.length ? `; skipped ${j.length - clean.length} that were not valid markup` : ""}${clean.length - add.length ? `; ${clean.length - add.length} already on the map` : ""}.`);
+      };
+      f.click();
+    };
     io.append(ex, im); scroll.append(io);
     host.append(scroll);
     if (keepFocus) { const n = host.querySelector(`[data-mk="${keepFocus}"]`); n?.focus(); }

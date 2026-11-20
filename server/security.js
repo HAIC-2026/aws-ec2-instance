@@ -11,8 +11,8 @@ export const HOME_INLINE_HASH = "'sha256-WZRJfWvsnNCPcxzZwvyhovnZGqhZaC+8gPGPRbx
 export const CSP = [
   "default-src 'self'",
   "script-src 'self' " + HOME_INLINE_HASH,
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", // MapLibre and the dock position with inline styles
-  "font-src 'self' https://fonts.gstatic.com",
+  "style-src 'self' 'unsafe-inline'", // MapLibre and the dock position with inline styles
+  "font-src 'self'", // fonts are served from this site (public/fonts): no third party sees a visit
   "img-src 'self' data: blob: https:",
   "connect-src 'self' https: data: blob:", // data:/blob: are images the app paints itself (weather grids, map sprites)
   "worker-src 'self' blob:",

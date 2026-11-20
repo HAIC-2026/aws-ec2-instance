@@ -8,7 +8,8 @@
     "build": "vite build",
     "start": "node server/index.js",
     "preview": "vite preview",
-    "test": "node --test server/"
+    "test": "node --test server/ src/",
+    "sbom": "npm sbom --sbom-format=cyclonedx --omit=dev > docs/sbom.cdx.json"
   },
   "devDependencies": {
     "vite": "^6.3.5"
@@ -21,7 +22,7 @@
     "maplibre-gl": "^6.18.0",
     "three": "^0.186.1"
   },
-  "description": "AllReady — access and functional needs (AFN) mass-care planning for Hawaiʻi (HAIC 2026, DHS ESF-6 challenge)",
+  "description": "AllReady \u2014 access and functional needs (AFN) mass-care planning for Hawai\u02bbi (HAIC 2026, DHS ESF-6 challenge)",
   "license": "MIT",
   "engines": {
     "node": ">=20.12"

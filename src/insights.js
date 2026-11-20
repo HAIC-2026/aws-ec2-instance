@@ -21,6 +21,8 @@ import { plan as buildPlan, dataActions, HAZARDS } from "./model.js";
 import { SCENARIOS } from "./scenario.js";
 import { WIDGETS, WIDGET_LIST } from "./widgets.js";
 import { liveEvent, insideEvent, loadLiveAlerts, manualSupply, stamp } from "./live.js";
+import { fetchT } from "./net.js";
+import { mountGuide, helpButton } from "./guide.js";
 
 const $ = (id) => document.getElementById(id);
 const el = (t, c, x) => { const n = document.createElement(t); if (c) n.className = c; if (x != null) n.textContent = x; return n; };
@@ -32,6 +34,8 @@ const store = {
 mountThemeToggle($("theme-host"));
 mountLanguage($("lang-host"));
 $("pgnav")?.append(...navLinks("insights", "lnk"));
+$("pgnav")?.after(helpButton());
+mountGuide("insights", $("status"));
 setInterval(() => ($("clk").textContent = new Date().toLocaleTimeString("en-US", { timeZone: "Pacific/Honolulu", hour12: false }) + " HST"), 1000);
 
 /* ---------------- state ---------------- */
@@ -117,7 +121,7 @@ function buildScopeBar() {
 
 function currentContext() {
   /* Live by default: the event is the NWS alert in force and the people at risk are the
-     tracts inside its polygons. A what-if is only used when it is picked in the Event box. */
+     tracts inside its polygons. A what-if is only used when it is picked in the event menu. */
   const live = S.hazard === "live";
   const ev = live ? liveEvent(DATA.alerts) : null;
   let sc = null, phase = null, tracts = S.scope === "state" ? DATA.tracts : DATA.tracts.filter((t) => t.countyFips === S.scope);
@@ -141,7 +145,7 @@ function currentContext() {
       })
     : null;
   const modeLabel = live ? (ev ? `Live · ${ev.label}` : "Live · no active event") : `What-if · ${sc.n} · ${phase.n}`;
-  const idle = live && !ev ? "No hurricane, tsunami, flood or fire-weather alert is in force for Hawaiʻi, so no needs or gaps are calculated. Pick a What-if in the Event box, or open Scenarios to compare every county and hazard." : "No census tracts fall inside this event for the selected area.";
+  const idle = live && !ev ? "No hurricane, tsunami, flood or fire-weather alert is in force for Hawaiʻi, so no needs or gaps are calculated. Choose a what-if in the event menu at the top left, or open the Event planner to compare every county and hazard." : "No census tracts fall inside this event for the selected area.";
 
   const scopeName = SCOPES.find(([k]) => k === S.scope)?.[1] || "All of Hawaiʻi";
   const shelterScope = DATA.shelters.filter((x) => S.scope === "state" || x.fips === S.scope);
@@ -313,7 +317,7 @@ addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("palette").hid
   const [tr, sh, emp] = settled;
 
   if (tr.status === "fulfilled") DATA.tracts = tr.value;
-  if (sh.status === "fulfilled") { DATA.shelters = sh.value.shelters; DATA.score = readiness(DATA.shelters); DATA.actions = dataActions(DATA.score); }
+  if (sh.status === "fulfilled") { DATA.shelters = sh.value.shelters; DATA.score = readiness(DATA.shelters, sh.value.errors); DATA.actions = dataActions(DATA.score); }
   else DATA.score = readiness([]);
   if (emp.status === "fulfilled") DATA.emp = emp.value;
 
@@ -341,14 +345,14 @@ async function loadLive() {
   const H = { headers: { Accept: "application/geo+json" } };
   const [al, qk, sh] = await Promise.allSettled([
     loadLiveAlerts(),
-    fetch(`https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=${new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10)}&minlatitude=18&maxlatitude=23&minlongitude=-161&maxlongitude=-154&minmagnitude=2.5`).then((r) => r.json()),
+    fetchT(`https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=${new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10)}&minlatitude=18&maxlatitude=23&minlongitude=-161&maxlongitude=-154&minmagnitude=2.5`).then((r) => r.json()),
     loadShelters(),
   ]);
   if (al.status === "fulfilled") DATA.alerts = al.value;
   DATA.read.live = Date.now();
   const st = $("status"); if (st && DATA.tracts.length) st.textContent = `Live feeds read ${stamp(DATA.read.live)} (shelters, NWS alerts, USGS) · refresh every 5 min · ${DATA.tracts.length} census tracts (SVI 2022) · ${DATA.shelters.length} shelters from ${DATA.score.filter((c) => c.published).length} of 4 counties`;
   if (qk.status === "fulfilled") { const m = (qk.value.features || []).map((f) => f.properties.mag); DATA.quakes = { count: m.length, max: m.length ? Math.max(...m) : null }; }
-  if (sh.status === "fulfilled" && sh.value.shelters.length) { DATA.shelters = sh.value.shelters; DATA.score = readiness(DATA.shelters); DATA.actions = dataActions(DATA.score); }
+  if (sh.status === "fulfilled" && sh.value.shelters.length) { DATA.shelters = sh.value.shelters; DATA.score = readiness(DATA.shelters, sh.value.errors); DATA.actions = dataActions(DATA.score); }
   if (!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "")) renderAll();
 }
 loadLive();

@@ -35,15 +35,19 @@ emPOWER counts from 1 to 10 are shown as a range, as HHS publishes them, and ZIP
 | Other websites spending the model quota | Same-origin check on `Origin` and `Sec-Fetch-Site`; optional allow-list | `server/llm.js` |
 | Flooding the assistant | Per-client rate limit, 120 KB body cap, 24-message and 4,000-character limits, bounded answer length, request and header timeouts | `server/llm.js`, `server/index.js` |
 | Personal data arriving from a public source | FEMA's shelter service includes staff contact fields; queries name only facility fields, so contacts never reach the browser | `src/shelters.js` |
+| A hostile or malformed markup file | Imports are capped at 2 MB and 2,000 items; every item is rebuilt from an allow-list (known kinds, coordinates in range, bounded text, real colours) and added beside existing markup, never replacing it | `src/markupclean.js`, `src/markupclean.test.js` |
+| A secret or repository file left in the web root | Hidden files (anything starting with a dot) are never served, except `/.well-known/security.txt` | `server/static.js`, `server/static.test.js` |
+| Visitors' addresses reaching third parties | Fonts are served from the site itself; the only outside requests are the public data feeds a page needs, and none carries cookies or credentials | `public/fonts/`, `src/net.js`, `server/security.js` |
 | Formula injection through exported CSV | Cells beginning with = + - @ are prefixed so a spreadsheet treats them as text; imports are size-capped and validated row by row | `src/match.js` |
 | Reading files outside the web root | Paths are decoded, normalised and checked against the root; malformed and NUL paths are refused; only GET and HEAD are allowed | `server/static.js`, `server/static.test.js` |
 | Clickjacking, MIME sniffing, downgrade | `frame-ancestors 'none'`, `X-Frame-Options: DENY`, `nosniff`, HSTS | `server/security.js` |
 | A malicious or sign-in-protected map service | https only; token-gated services refused; requests carry no credentials; suspect field names hidden | `src/arcgis.js` |
 | Compromised dependency | Three runtime packages, pinned by lockfile; the server has none; `npm audit` in CI; Dependabot | `package.json`, `.github/` |
 | Error messages revealing internals | Generic errors to the client; upstream bodies and stack traces are never echoed | `server/llm.js`, `server/index.js` |
+| A model output mistaken for an official warning | The warning outlook is labelled "not a forecast or warning" in every place it appears, sits apart from the NWS alert list, and only links to a what-if rehearsal; it never triggers a message or a live event | `src/outlook.js`, `src/planner.js`, `src/scenarios.js` |
 | Misuse as an alerting or tracking tool | No accounts, no resident-level data, no outbound messaging; it has no way to send anything outward; the home page, the Insights footer and every exported plan state it is not an alert | whole design |
 
-Residual risks, stated plainly: the app trusts the public feeds it reads (a wrong county record shows as a wrong figure, with its source linked); `connect-src` allows any https host because planners may add any public ArcGIS layer; anyone who can use the planner's browser can read its local markup; and a small local model can still misread a snapshot.
+Residual risks, stated plainly: the app trusts the public feeds it reads (a wrong county record shows as a wrong figure, with its source linked); `connect-src` allows any https host because planners may add any public ArcGIS layer; anyone who can use the planner's browser profile can read its local markup (see "Is storing planner entries in the browser safe enough?" below); and a small local model can still misread a snapshot.
 
 ## How to verify
 
@@ -55,7 +59,51 @@ npm test
 npm audit
 ```
 
-The tests assert the security headers on every response, refusal of traversal and non-GET methods, input validation and limits, cross-origin refusal, rate limiting, and that the key stays on the server.
+The tests assert the security headers on every response, refusal of traversal, hidden files and non-GET methods, input validation and limits, cross-origin refusal, rate limiting, that the key stays on the server, that hung feeds are cut off, and that imported markup is rebuilt from an allow-list.
+
+```bash
+npm run sbom
+```
+
+writes the software bill of materials (CycloneDX) to `docs/sbom.cdx.json`. CodeQL scans every push (`.github/workflows/codeql.yml`) and Dependabot watches dependencies. `/.well-known/security.txt` tells anyone who finds a problem where to report it privately.
+
+## The view from each stakeholder
+
+| Who | What they need from the design | How AllReady answers |
+|---|---|---|
+| Residents with access and functional needs | Never to be identifiable, tracked or listed; to be counted fairly on every island | Area-level public data only; no registry, no accounts, no resident ever entered; every populated tract scored the same way; missing county data shown as missing, never as zero |
+| DHS and HI-EMA leadership | Nothing that could be mistaken for an alert or an order; decisions stay with people | No outbound channel exists; live vs what-if labelled everywhere; the model outlook and the assistant are labelled advisory; every figure links to its source |
+| County emergency managers | Their shelter data untouched and credited; county lead respected | Read-only queries to the services counties already publish; links back to each; decision points written county-led, State-supported |
+| Partner organisations | Commitments recorded about the organisation, not its staff or clients | The form and CSV import refuse phone numbers, emails and ID numbers; commitments stay local until exported |
+| ETS / State security office | Something they can host, scan and reason about | Zero-dependency server, three pinned browser libraries, SBOM, CodeQL, strict CSP, no secrets in source, a written threat model and the control map below |
+| Developers who maintain it | Safe defaults that are hard to break by accident | All outside requests through one bounded helper (`src/net.js`); all dynamic text written as text; tests for each control |
+
+## Controls in place, control by control (NIST SP 800-53 Rev. 5)
+
+| Control | What is implemented now | Evidence |
+|---|---|---|
+| AC-4 Information flow enforcement | Points of contact are stripped before any snapshot reaches the model; nothing a planner enters leaves the browser unless exported | `src/annotations.js` snapshot, `src/planner.js` mapContext |
+| CM-7 Least functionality | Server answers GET/HEAD for files and two API routes only; hidden files never served | `server/static.js`, `server/static.test.js` |
+| SA-11 / SR-3 Developer testing, supply chain | 21 automated tests, dependency audit and CodeQL on every push; SBOM; lockfile-pinned dependencies | `.github/workflows/`, `docs/sbom.cdx.json` |
+| SC-5 Denial-of-service protection | Rate limits, body and message caps, bounded model output, request and header timeouts; every outside request has a time limit | `server/llm.js`, `server/index.js`, `src/net.js` |
+| SC-8 / SC-23 Transmission and session integrity | HTTPS-only data sources, HSTS, no cookies or credentials sent to any outside service | `server/security.js`, `src/net.js` |
+| SC-18 Mobile code | Scripts only from this site; no inline script, no `eval`; fonts self-hosted | CSP in `server/security.js` |
+| SI-10 Information input validation | Chat input, CSV import and markup import validated, size-capped and rebuilt from allow-lists | `server/llm.js`, `src/match.js`, `src/markupclean.js` |
+| SI-11 Error handling | Generic errors to clients; upstream bodies never echoed; failed feeds reported as unavailable, not as data | `server/llm.js`, `src/shelters.js` |
+| SI-12 Information management and retention | Every item kept in the browser listed with its retention and a clear button | Data health → Data in this browser |
+| PT-2 / PT-3 Authority and purpose (privacy) | Purpose limited to planning; no personal information processed | Challenge scope; this document |
+
+## Plan of action and milestones for a production deployment
+
+| Gap | Control | Action | Owner | When |
+|---|---|---|---|---|
+| No sign-in or roles | AC-2, IA-2 | Put the app behind State single sign-on; roles for county EMA, DHS and partner organisations | ETS with DHS | Before any staff pilot |
+| Planner entries live only in one browser | SC-28, AU-2 | Move markup, commitments and supply counts to an encrypted State database with an audit log of every change | ETS | Pilot |
+| No retention schedule for planner entries | SI-12 | DHS sets retention; automatic expiry of stale entries | DHS records officer | Pilot |
+| Accessibility not formally audited | Section 508 | Independent WCAG 2.1 AA audit with screen-reader users, including people with AFN | DHS with DCAB | Before public use |
+| Translations are drafts | Title VI, HRS 321C | Native-speaker review through the State Office of Language Access and community partners | DHS | Before public use |
+| Assistant model hosting | SA-9 | State-hosted or authorized model so no prompt leaves State systems | ETS | Pilot |
+| No formal assessment | CA-2, CA-6 | Security assessment and authorization to operate by ETS | ETS | Before production |
 
 ## Laws, standards and policies
 
@@ -92,6 +140,29 @@ This is an engineering mapping to show where the design stands. It is **not lega
 ### County
 
 Counties lead mass care and own their shelter data. AllReady only reads the feature services each county already publishes to the public, changes nothing in them, and links back to each. A county using the tool would apply its own IT security policy to the workstation it runs on. Maui County publishes no list of its own, so Maui sites come from FEMA's public National Shelter System and are labelled as registered sites, not county designations. That service also carries point-of-contact names, phones and emails; AllReady requests only facility fields and never reads them.
+
+## Data governance: what is kept, where, and for how long
+
+AllReady has no accounts, no database and no server-side storage. The only data it keeps is in the planner's own browser, and the **Data in this browser** panel on the Data health page lists every item, what kind of data it is, how long it is kept, and lets the planner clear any of it (or everything) at once.
+
+| Kind of data | Examples | Kept |
+|---|---|---|
+| Public | Last shelter list per county, weather and forecast caches | Replaced on every read; 30–60 minutes for caches |
+| Planner entry (organisations and facilities, never residents) | Map markup and facility points of contact, partner commitments, supply counts | Until the planner deletes it; commitments are flagged for re-confirmation after 30 days |
+| Settings | Layers, layout, theme, language, hidden guides | Until changed |
+
+Nothing in the browser is sent anywhere unless the planner exports it. Points of contact are removed before any snapshot reaches the assistant. In a State deployment, planner entries would move behind State single sign-on with the retention schedule DHS sets.
+
+### Is storing planner entries in the browser safe enough?
+
+For this prototype, yes, and here is the honest reasoning rather than a yes on faith.
+
+- **What is at stake is small by design.** Nothing about residents is ever stored: the public figures are area-level, and planner entries are about organisations and facilities. The most sensitive item is a facility or agency point of contact typed into map markup, which is a work contact, and it is stripped before anything reaches the assistant.
+- **The main browser risk is script injection, and it is closed.** A script running on the page could read local storage. The Content-Security-Policy allows scripts only from this site, with no inline script and no `eval`; all dynamic text is written as text, never as HTML; imported files are validated.
+- **What browser storage cannot do:** it is not encrypted beyond the device's own disk encryption, it has no per-user access control on a shared computer, and it keeps no audit trail. Those are exactly the controls a production deployment needs, so they are listed here rather than claimed.
+- **A container is not the answer to this particular question.** Packaging the server in a container hardens and standardises the *server*; it does not change where the browser keeps data. The fix for the limits above is moving planner entries server-side.
+
+**Production plan.** Host AllReady on State infrastructure (ETS) as a hardened container running as a non-root user on a read-only file system, behind State single sign-on. Move markup, partner commitments and supply counts into an encrypted State database with role-based access (county EMA, DHS, partner organisation), an audit log of every change, and a retention schedule set by DHS. Keep the public-data pages reachable without sign-in. Point the assistant at a State-hosted model so no prompt leaves State systems.
 
 ## AI safeguards in one place
 

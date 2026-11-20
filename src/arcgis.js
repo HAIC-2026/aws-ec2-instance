@@ -5,6 +5,7 @@
    - Map services draw as server-rendered images (export), cached map services as tiles.
    - Services that need a sign-in are refused: AllReady uses public data only.
    - Field names that suggest personal information are flagged before anything is added. */
+import { fetchT } from "./net.js";
 
 export const PRESETS = [
   { g: "Hazards (Hawaiʻi Statewide GIS)", n: "Fire risk areas", u: "https://geodata.hawaii.gov/arcgis/rest/services/Hazards/MapServer/7", haz: "wildfire" },
@@ -30,7 +31,7 @@ export function normalize(raw) {
 }
 
 async function getJSON(url) {
-  const r = await fetch(url + (url.includes("?") ? "&" : "?") + "f=json");
+  const r = await fetchT(url + (url.includes("?") ? "&" : "?") + "f=json");
   if (!r.ok) throw new Error(`The server answered ${r.status}.`);
   const j = await r.json();
   if (j.error) throw new Error(j.error.code === 499 || j.error.code === 498 || /token/i.test(j.error.message || "") ? "This service needs a sign-in. AllReady only adds public services." : j.error.message || "The server returned an error.");
@@ -79,7 +80,7 @@ export async function queryAll(info, { max = 20000, onProgress } = {}) {
   const fmt = info.geojson ? "geojson" : "json";
   for (let off = 0; off < max; off += page) {
     const q = `${info.url}/query?where=1%3D1&outFields=*&returnGeometry=true&outSR=4326${simp}&f=${fmt}` + (info.paging ? `&resultOffset=${off}&resultRecordCount=${page}` : "");
-    const r = await fetch(q); if (!r.ok) throw new Error(`The server answered ${r.status}.`);
+    const r = await fetchT(q, {}, 30000); if (!r.ok) throw new Error(`The server answered ${r.status}.`);
     const j = await r.json(); if (j.error) throw new Error(j.error.message || "Query failed.");
     const fs = info.geojson ? j.features || [] : (j.features || []).map((f) => ({ type: "Feature", properties: f.attributes, geometry: esri2geo(f.geometry) }));
     out.push(...fs.filter((f) => f.geometry)); onProgress?.(out.length);

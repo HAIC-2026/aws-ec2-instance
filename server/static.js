@@ -16,6 +16,9 @@ export function serveStatic(dir, { index = "/home.html" } = {}) {
     try { path = decodeURIComponent((req.url || "/").split("?")[0]); } catch { res.writeHead(400); return res.end(); }
     if (path.includes("\0")) { res.writeHead(400); return res.end(); }
     if (path === "/") path = index;
+    // Hidden files are never served (a stray .env or .git in the web root stays private);
+    // the one exception is /.well-known/, where security.txt lives (RFC 9116).
+    if (/(^|\/)\.(?!well-known\/)/.test(path)) { res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" }); return res.end("Not found"); }
     // normalise, then insist the result is still inside the directory — no path traversal
     const file = normalize(join(ROOT, path));
     if (file !== ROOT && !file.startsWith(ROOT + sep)) { res.writeHead(403); return res.end(); }

@@ -12,6 +12,9 @@ before(async () => {
   await mkdir(join(dir, "site"));
   await writeFile(join(dir, "site", "home.html"), "<!doctype html><title>home</title>");
   await writeFile(join(dir, "secret.txt"), "outside the web root");
+  await writeFile(join(dir, "site", ".env"), "LLM_API_KEY=should-never-be-served");
+  await mkdir(join(dir, "site", ".well-known"));
+  await writeFile(join(dir, "site", ".well-known", "security.txt"), "Contact: https://example.invalid");
   process.env.LLM_BASE_URL = "http://127.0.0.1:9/v1"; // nothing listens here; these tests never reach a model
   const { createHandler } = await import("./index.js");
   server = http.createServer(createHandler(join(dir, "site")));
@@ -55,4 +58,14 @@ test("errors carry the security headers too and never a stack trace", async () =
   assert.equal(r.status, 404);
   assert.equal(r.headers.get("x-content-type-options"), "nosniff");
   assert.equal(await r.text(), "Not found");
+});
+
+test("never serves hidden files, but does serve /.well-known/security.txt", async () => {
+  for (const p of ["/.env", "/%2Eenv", "/x/../.env", "/.git/config"]) {
+    const r = await raw(p);
+    assert.notEqual(r.status, 200, p);
+    assert.ok(!r.body.includes("should-never-be-served"), p);
+  }
+  const ok = await fetch(base + "/.well-known/security.txt");
+  assert.equal(ok.status, 200);
 });

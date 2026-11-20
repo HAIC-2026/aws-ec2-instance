@@ -72,6 +72,12 @@ h2{margin:0 0 6px;font:600 21px var(--serif)}
 
 /* alerts */
 .alerts{list-style:none;margin:0;padding:8px}
+.olbox{margin:8px 8px 0;border:1px solid var(--line);border-radius:6px;overflow:hidden}.olbox:empty{display:none}
+.olh{display:flex;justify-content:space-between;gap:8px;padding:6px 9px;font-size:11px;letter-spacing:.02em;color:var(--dim);border-bottom:1px solid var(--line)}.olh b{color:var(--cream);font-weight:600}
+.olr{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;padding:7px 9px;color:var(--cream);text-decoration:none;border-top:1px solid var(--line)}.olr:first-of-type{border-top:0}.olr:hover{background:rgba(127,127,127,.1)}
+.olr b{display:block;font-weight:600;font-size:12px}.olr em{display:block;font-style:normal;font-size:11px;color:var(--dim)}
+.olp{font:600 12px var(--mono,monospace);text-align:right}.lv-high .olp{color:#ff6b5e}.lv-elevated .olp{color:#f2c14e}
+.olgo{font-size:11px;color:var(--dim);border:1px solid var(--line);border-radius:4px;padding:2px 7px}.olbox .src{margin:0;padding:8px 9px}
 .alert{display:grid;gap:3px;width:100%;text-align:left;padding:10px 12px;margin-bottom:6px;background:var(--surf2);border:1px solid var(--line);border-left:3px solid #9aa3b5;border-radius:8px;cursor:pointer}
 .alert:hover{border-color:var(--faint)}
 .alert .ev{font:500 10.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
@@ -93,7 +99,7 @@ h2{margin:0 0 6px;font:600 21px var(--serif)}
 
 /* map view toolbar, floating over the map */
 .lgn{font-size:11.5px;color:var(--dim);margin-bottom:3px}
-.sevs{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:11px;color:var(--dim)}.sevs i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
+.sevs.col{flex-direction:column;align-items:flex-start}.sevs{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:11px;color:var(--dim)}.sevs i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
 .ctrl{position:absolute;z-index:5;left:50%;bottom:24px;transform:translateX(-50%);display:flex;gap:6px;align-items:center;padding:6px;background:rgba(7,16,31,.92);border:1px solid var(--line);border-radius:999px}
 .ctrl button,.ctrl .sel{white-space:nowrap;background:none;border:1px solid transparent;border-radius:999px;padding:7px 14px;cursor:pointer}
 .ctrl button:hover,.ctrl .sel:hover{background:rgba(243,234,214,.1)}
@@ -105,3 +111,6 @@ h2{margin:0 0 6px;font:600 21px var(--serif)}
 
 @media(max-width:900px){.sub,.clock,.lnk,#wsMenu span{display:none}.ctrl{bottom:12px;max-width:calc(100% - 16px);overflow-x:auto}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* first-paint guard in each page <head> hides the body until this stylesheet has applied */
+html body { opacity: 1; animation: none; }

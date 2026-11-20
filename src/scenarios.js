@@ -17,10 +17,12 @@ import { loadEmpower } from "./empower.js";
 import { plan, supply, FACTORS, SHELTER_RANGE, HAZARDS } from "./model.js";
 import { SCENARIOS, OWNERS, fmtOffset } from "./scenario.js";
 import { loadExposure, zoneArea, share, COUNTY_LIST, ZONES } from "./exposure.js";
-import { backtest } from "./backtest.js";
+import { backtest, EVENTS } from "./backtest.js";
+import { onWhatIf } from "./whatif.js";
 import { who, pledgedSupply, csvCell } from "./match.js";
 import { createAssistant } from "./assistant.js";
 import { loadLiveAlerts, liveEvent, stamp } from "./live.js";
+import { loadOutlook, OUTLOOK_HAZARDS, COUNTY_NAMES, level, pct as opct, dayName, peaks, outlookContext } from "./outlook.js";
 
 const $ = (id) => document.getElementById(id);
 function h(tag, attrs = {}, ...kids) {
@@ -77,7 +79,7 @@ function ratesFor(hazard, intensity) {
   }
   if (intensity === "high") return { evac, pub: Math.min(1, pub * SHELTER_RANGE.high), up, ok: true, note: `Public-shelter share doubled to ${pct(Math.min(1, pub * SHELTER_RANGE.high))} of evacuees.` };
   if (intensity === "custom" && hazard === S.hazard) return { evac: S.over.evac ?? evac, pub: S.over.pub ?? pub, up: S.over.up ?? up, ok: true, note: "Custom assumptions set on this page." };
-  return { evac, pub, up, ok: true, note: "Documented planning factors (see Data & method)." };
+  return { evac, pub, up, ok: true, note: "Documented planning factors (see Data health)." };
 }
 
 /* ---------------- computation ---------------- */
@@ -125,7 +127,21 @@ function renderMatrix() {
   $("mxSrc").textContent = `${it[1]}: ${it[2]}. Residents in each zone from 2020 Census blocks inside the State's published hazard layers; hurricane counts the whole county.`;
 }
 
+/* Start from a past event: the county and hazard of a real Hawaiʻi event, at the turnout
+   counted then (Near miss). Gives a planner a concrete, defensible starting point. */
+const PAST = EVENTS.map((e) => ({ id: e.id, hazard: e.hazard, county: e.area.fips || "15009", label: `${e.name}, ${new Date(e.date + "T12:00:00Z").toLocaleDateString("en-US", { month: "short", year: "numeric", timeZone: "UTC" })} · ${e.place}` }));
+function renderPast() {
+  const sel = $("past"); if (!sel || sel.options.length) return;
+  sel.append(h("option", { value: "" }, "Choose a past event…"), ...PAST.map((p) => h("option", { value: p.id }, p.label)));
+  sel.onchange = () => {
+    const p = PAST.find((x) => x.id === sel.value); if (!p) return;
+    S.county = p.county; S.hazard = p.hazard; S.intensity = D.observed[p.hazard] ? "near" : "standard"; S.over = {};
+    save(); render(); sel.value = "";
+  };
+}
+
 function renderControls() {
+  renderPast();
   const sel = $("county");
   if (!sel.options.length) {
     for (const c of COUNTY_LIST) sel.append(h("option", { value: c.fips }, c.long));
@@ -173,8 +189,9 @@ function supplyFor(r, x, fips) {
 const DAILY = new Set(["water", "meals", "staff", "interpreters"]);
 
 function render(full = true) {
+  save(); // the shared what-if (src/whatif.js): the Live map opens on whatever is shown here
   if (!D.tracts.length || !D.exp) return;
-  renderIntensity(); renderMatrix(); renderControls();
+  renderIntensity(); renderMatrix(); renderControls(); renderOutlook();
   const R = compute(S.county, S.hazard, S.intensity);
   const fips = S.county === "state" ? null : S.county;
   D.pledges = fips ? pledgedSupply(fips) : {};
@@ -332,6 +349,43 @@ function renderTracts(R) {
       h("td", { class: "num" }, Math.round(t.afn_index) + " / 100"))))));
 }
 
+/* ---------------- 7-day warning outlook (trained model) ---------------- */
+// Forecast in, likely warnings out, one click to rehearse the plan for it: the faster path from a
+// forecast to a coordinated plan. The model never says a warning will happen; NWS decides that.
+function renderOutlook() {
+  const o = D.outlook, box = $("outlook");
+  if (!o) return;
+  const th = (k) => o.model.models[k].thresholds;
+  const cell = (x, fips, hz, label) => {
+    if (!x) return h("td", {}, "–");
+    const lv = level(x.p, th(hz.k));
+    return h("td", { class: "r" }, h("button", {
+      type: "button", class: `ol ol-${lv}`,
+      title: `${hz.warn}: ${opct(x.p)}${x.why.length ? " — " + x.why.join(", ") : ""}. Select to rehearse the ${HZ[hz.plan].n.toLowerCase()} plan${fips !== S.county ? " for " + COUNTY_NAMES[fips] : ""}.`,
+      "aria-label": `${label}, ${hz.warn}: ${opct(x.p)}. Rehearse this.`,
+      onclick: () => { S.county = fips; S.hazard = hz.plan; if (S.intensity === "custom") { S.intensity = "standard"; S.over = {}; } save(); render(); },
+    }, opct(x.p)));
+  };
+  const head = h("thead", {}, h("tr", {}, h("th", {}, S.county === "state" ? "Next 3 days" : "Day"), OUTLOOK_HAZARDS.map((z) => h("th", { class: "r" + (z.plan === S.hazard ? " cur" : ""), title: z.warn }, z.n))));
+  let body, top;
+  if (S.county === "state") {
+    const pk = peaks(o, 3);
+    body = Object.keys(o.rows).map((c) => h("tr", {}, h("td", {}, h("b", {}, COUNTY_NAMES[c])), OUTLOOK_HAZARDS.map((z) => cell(pk.find((x) => x.fips === c && x.hz.k === z.k), c, z, COUNTY_NAMES[c]))));
+    top = pk[0];
+  } else {
+    const list = o.rows[S.county] || [];
+    body = list.map((r) => h("tr", { class: r.lead >= 4 ? "far" : null }, h("td", {}, dayName(r.day, r.lead)), OUTLOOK_HAZARDS.map((z) => cell(r.s[z.k], S.county, z, dayName(r.day, r.lead)))));
+    top = peaks({ rows: { [S.county]: list } }, 7)[0];
+  }
+  box.replaceChildren(h("table", { class: "s-t ol-t" }, head, h("tbody", {}, body)),
+    top ? h("p", { class: "ol-top" }, h("b", {}, level(top.p, th(top.hz.k)) === "low" ? "Nothing unusual this week. " : `Most likely: ${top.hz.warn}, ${top.county || COUNTY_NAMES[S.county]}, ${dayName(top.day, top.lead).toLowerCase()} (${opct(top.p)}). `), top.why.length ? "Driven by " + top.why.join(" and ") + "." : "") : null);
+  const t = o.model.models;
+  $("olSrc").replaceChildren(
+    "Select a percentage to rehearse that hazard. Days 5–7 (grey) are less certain. Columns are Red Flag, Flood Watch or Flash Flood, and High Wind warnings; wind opens the hurricane plan. ",
+    `${o.stale ? "Forecast could not be refreshed; showing the last copy from " : "Forecast read "}${stamp(o.at)} (Open-Meteo). Model tested on ${o.model.test.from.slice(0, 7)} to ${o.model.test.to.slice(0, 7)}, data it never trained on: it ranks a warning day above a quiet day ${Math.round(t.wildfire.test.auc * 100)}% (Red Flag), ${Math.round(t.flood.test.auc * 100)}% (flood) and ${Math.round(t.wind.test.auc * 100)}% (high wind) of the time. `,
+    h("a", { href: "method.html#oT" }, "How it was checked"), ". A planning signal, not a forecast or warning; follow NWS.");
+}
+
 /* ---------------- assistant ---------------- */
 function context() {
   const R = compute(S.county, S.hazard, S.intensity), d = R.plan.demand, fips = S.county === "state" ? null : S.county;
@@ -342,6 +396,7 @@ function context() {
     needs: { likelyInPublicShelter: d.shelterPop, range: [d.shelterLow, d.shelterHigh], cmistInShelter: Object.fromEntries(Object.entries(d.cmist).map(([k, v]) => [k, { name: v.n, people: v.v, meaning: v.what }])) },
     resources: R.plan.resources.filter((x) => x.need > 0).map((x) => { const s = supplyFor(R, x, fips), w = who(x.k, fips); return { resource: x.n, needed: x.need, unit: x.unit, supply: s.have, supplySource: s.src, gap: s.have == null ? "unknown" : Math.max(0, x.need - s.have), confirmWith: w.org }; }),
     shelterSupply: { sitesOnRecord: R.plan.supply.sites, spacesOnRecord: R.plan.supply.spaces, sitesWithoutCapacity: R.plan.supply.capacityUnknownSites },
+    warningOutlook: D.outlook ? outlookContext(D.outlook) : "not loaded",
     decisionPoints: SCENARIOS[S.hazard].points.map((p) => ({ when: fmtOffset(p.t, SCENARIOS[S.hazard].unit), who: OWNERS[p.owner].n, action: p.action, trigger: p.trigger })),
   };
 }
@@ -367,6 +422,14 @@ $("copy").onclick = async () => {
   try { await navigator.clipboard.writeText(u.toString()); $("copy").textContent = "Link copied"; } catch { $("copy").textContent = u.toString(); }
   setTimeout(() => ($("copy").textContent = "Copy link"), 2500);
 };
+// The Live map changed the shared what-if in another tab: follow it.
+onWhatIf((w) => {
+  if ((w.county && w.county !== S.county) || (w.hazard && w.hazard !== S.hazard)) {
+    S.county = w.county || S.county; S.hazard = w.hazard || S.hazard;
+    if (S.intensity === "custom") { S.intensity = "standard"; S.over = {}; }
+    render();
+  }
+});
 $("reset").onclick = () => { S.intensity = "standard"; S.over = {}; S.days = 7; save(); render(); };
 
 /* ---------------- load ---------------- */
@@ -374,9 +437,10 @@ function ribbon(parts) {
   $("ribbon").replaceChildren(...parts.map(([s, b, t]) => h("span", {}, h("span", { class: "dot", "data-s": s }), b ? h("b", {}, b + " ") : null, t)));
 }
 (async () => {
+  const outlookP = loadOutlook(); // in parallel with the rest; it has its own fallbacks
   const [svi, shel, emp, exp] = await Promise.allSettled([fetchSVI({ geometry: false }), loadShelters(), loadEmpower(), loadExposure()]);
   if (svi.status === "fulfilled") D.tracts = rankTracts(svi.value);
-  if (shel.status === "fulfilled") D.shelters = shel.value.shelters || shel.value.list || shel.value;
+  if (shel.status === "fulfilled") { D.shelters = shel.value.shelters || []; D.shelErr = shel.value.errors || []; }
   if (emp.status === "fulfilled") D.emp = emp.value;
   if (exp.status === "fulfilled") D.exp = exp.value;
   if (!Array.isArray(D.shelters)) D.shelters = [];
@@ -390,11 +454,12 @@ function ribbon(parts) {
   ribbon([
     [D.tracts.length ? "on" : "off", "Census tracts", D.tracts.length ? `${D.tracts.length} read from CDC/ATSDR at ${stamp(now)}` : "unavailable"],
     [D.exp ? "on" : "off", "Hazard zones", D.exp ? `${Object.keys(D.exp.tracts).length} tracts processed ${new Date(D.exp.generated).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}` : "unavailable"],
-    [D.shelters.length ? "on" : "warn", "Shelters", D.shelters.length ? `${D.shelters.length} sites: 3 county services and FEMA registry (Maui), live` : "county feeds unavailable"],
+    [!D.shelters.length ? "warn" : D.shelErr?.length ? "warn" : "on", "Shelters", D.shelters.length ? `${D.shelters.length} sites: 3 county services and FEMA registry (Maui)${D.shelErr?.length ? ` · ${D.shelErr.map((e) => e.county + (e.stale ? ": saved copy" : ": did not answer")).join(", ")}` : ", live"}` : "shelter feeds did not answer; supply shows as unknown"],
     [D.emp ? "on" : "warn", "emPOWER", D.emp ? "read live" : "unavailable"],
   ]);
   if (!D.tracts.length || !D.exp) { $("dTitle").textContent = "A data source did not answer. Reload the page to try again."; return; }
   render();
+  outlookP.then((o) => { D.outlook = o; renderOutlook(); }).catch(() => { $("outlook").replaceChildren(h("p", { class: "s-empty", style: "margin:14px" }, "The forecast service did not answer, so no outlook is shown. Scenarios still work.")); });
   // A real event changes the question: point to the live map.
   try {
     const al = await loadLiveAlerts(); const ev = liveEvent(al.alerts || al);

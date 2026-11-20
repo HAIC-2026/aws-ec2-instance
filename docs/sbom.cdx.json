@@ -1,0 +1,1224 @@
+{
+  "$schema": "http://cyclonedx.org/schema/bom-1.5.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:af6458b1-60f8-4517-b0c4-31363c939f17",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-11-20T07:52:53.811Z",
+    "lifecycles": [
+      {
+        "phase": "build"
+      }
+    ],
+    "tools": [
+      {
+        "vendor": "npm",
+        "name": "cli",
+        "version": "11.20.0"
+      }
+    ],
+    "component": {
+      "bom-ref": "allready@1.0.0",
+      "type": "library",
+      "name": "allready",
+      "version": "1.0.0",
+      "scope": "required",
+      "description": "AllReady — access and functional needs (AFN) mass-care planning for Hawaiʻi (HAIC 2026, DHS ESF-6 challenge)",
+      "purl": "pkg:npm/allready@1.0.0",
+      "properties": [
+        {
+          "name": "cdx:npm:package:private",
+          "value": "true"
+        }
+      ],
+      "externalReferences": [],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "@mapbox/jsonlint-lines-primitives@2.0.3",
+      "type": "library",
+      "name": "@mapbox/jsonlint-lines-primitives",
+      "version": "2.0.3",
+      "scope": "required",
+      "author": "Zach Carter <zach@carter.name> (http://zaa.ch)",
+      "description": "Validate JSON",
+      "purl": "pkg:npm/%40mapbox/jsonlint-lines-primitives@2.0.3",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@mapbox/jsonlint-lines-primitives/-/jsonlint-lines-primitives-2.0.3.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "git://github.com/mapbox/jsonlint.git"
+        },
+        {
+          "type": "issue-tracker",
+          "url": "http://github.com/mapbox/jsonlint/issues"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "d12125695d2e331127c73061857f564ee3f251e32c00dfd24b48b5ead8ee6dae3f9a2a3adcc1bd9218c2d5ad090223c65c0c2fc26e147c725444237b9f2b9d42"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "@mapbox/point-geometry@1.1.0",
+      "type": "library",
+      "name": "@mapbox/point-geometry",
+      "version": "1.1.0",
+      "scope": "required",
+      "author": "Tom MacWright",
+      "description": "a point geometry with transforms",
+      "purl": "pkg:npm/%40mapbox/point-geometry@1.1.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@mapbox/point-geometry/-/point-geometry-1.1.0.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "git@github.com:mapbox/point-geometry.git"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/mapbox/point-geometry"
+        },
+        {
+          "type": "issue-tracker",
+          "url": "https://github.com/mapbox/point-geometry/issues"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "606701cf5720e004d70c233fef52fdc6f7a1e1dca77c699c2c3aae7d1fa7410cb77cac2c019b1677fc78eb6d7feae25a781f66c0e1c4ea13de0e05f3f6e56251"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "@mapbox/tiny-sdf@2.3.0",
+      "type": "library",
+      "name": "@mapbox/tiny-sdf",
+      "version": "2.3.0",
+      "scope": "required",
+      "author": "Vladimir Agafonkin",
+      "description": "Browser-side SDF font generator",
+      "purl": "pkg:npm/%40mapbox/tiny-sdf@2.3.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@mapbox/tiny-sdf/-/tiny-sdf-2.3.0.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "git+https://github.com/mapbox/tiny-sdf.git"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/mapbox/tiny-sdf#readme"
+        },
+        {
+          "type": "issue-tracker",
+          "url": "https://github.com/mapbox/tiny-sdf/issues"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "801bdc34304107ae9b81062f9da27a264f9509a32656ae7e2194769163e2b13f3c67cb3490142dea17d58bc420456f15a60d14599cc1038652cb31c70be55e44"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "@mapbox/unitbezier@1.0.0",
+      "type": "library",
+      "name": "@mapbox/unitbezier",
+      "version": "1.0.0",
+      "scope": "required",
+      "description": "unit bezier curve interpolation",
+      "purl": "pkg:npm/%40mapbox/unitbezier@1.0.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@mapbox/unitbezier/-/unitbezier-1.0.0.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "git@github.com:mapbox/unitbezier.git"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/mapbox/unitbezier"
+        },
+        {
+          "type": "issue-tracker",
+          "url": "https://github.com/mapbox/unitbezier/issues"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "7ea779d797e306600d2861ac436f3a1365af8ff5ef0c5a46cf0271ab8088ea3310b9ee8ecb4e2e08aa7e256285d34c514e693a704bb58cf27da77c6a1fc616a9"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "@mapbox/vector-tile@3.0.0",
+      "type": "library",
+      "name": "@mapbox/vector-tile",
+      "version": "3.0.0",
+      "scope": "required",
+      "description": "Parses vector tiles",
+      "purl": "pkg:npm/%40mapbox/vector-tile@3.0.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@mapbox/vector-tile/-/vector-tile-3.0.0.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "git+https://github.com/mapbox/vector-tile-js.git"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "41fd744b5b881cc936d2b8bf215067a52f9eb1412455a4791dfb66cfcf234c89eba665a03c625f3dedcb5638e513beedacbc7cb47eaa8d31bbb961fd848abfd1"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "@maplibre/geojson-vt@6.3.0",
+      "type": "library",
+      "name": "@maplibre/geojson-vt",
+      "version": "6.3.0",
+      "scope": "required",
+      "author": "Vladimir Agafonkin",
+      "description": "Slice GeoJSON data into vector tiles efficiently",
+      "purl": "pkg:npm/%40maplibre/geojson-vt@6.3.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@maplibre/geojson-vt/-/geojson-vt-6.3.0.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/maplibre/geojson-vt"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "dd9c368ec53da48246dc6d824056cb8d68f6325007a1d843edc498fb5e62cb052e2e69a483370a467b9e55167801c0bfe703ad7e189d709000cc1a6804db375e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "@maplibre/maplibre-gl-style-spec@26.8.0",
+      "type": "library",
+      "name": "@maplibre/maplibre-gl-style-spec",
+      "version": "26.8.0",
+      "scope": "required",
+      "author": "MapLibre",
+      "description": "a specification for maplibre styles",
+      "purl": "pkg:npm/%40maplibre/maplibre-gl-style-spec@26.8.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@maplibre/maplibre-gl-style-spec/-/maplibre-gl-style-spec-26.8.0.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/maplibre/maplibre-style-spec"
+        },
+        {
+          "type": "website",
+          "url": "https://maplibre.org/maplibre-style-spec/"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "102963fb49badb8cc6c3981d08eb08e5ff3c6d8ce45df8283f64a3e551acd80620f6165a3f1bc2ba65f92830ece9a285c25daeb7ede301e2e1beb4b3ee112c05"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "@maplibre/mlt@1.3.0",
+      "type": "library",
+      "name": "@maplibre/mlt",
+      "version": "1.3.0",
+      "scope": "required",
+      "purl": "pkg:npm/%40maplibre/mlt@1.3.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@maplibre/mlt/-/mlt-1.3.0.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/maplibre/maplibre-tile-spec"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/maplibre/maplibre-tile-spec/#readme"
+        },
+        {
+          "type": "issue-tracker",
+          "url": "https://github.com/maplibre/maplibre-tile-spec/issues"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "eccd8eec004cf343a2f173e47e4ae3281f263812311a8560900e7632ee11316a01bef31d6a0439db6f96c5562e8d9b0ca6a22bdc1a73ad36d7ae6e24f250b309"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "(MIT OR Apache-2.0)"
+        }
+      ]
+    },
+    {
+      "bom-ref": "@maplibre/vt-pbf@4.3.3",
+      "type": "library",
+      "name": "@maplibre/vt-pbf",
+      "version": "4.3.3",
+      "scope": "required",
+      "author": "Anand Thakker <vestibule@anandthakker.net> (http://anandthakker.net/)",
+      "description": "Serialize mapbox vector tiles to binary protobufs in javascript.",
+      "purl": "pkg:npm/%40maplibre/vt-pbf@4.3.3",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@maplibre/vt-pbf/-/vt-pbf-4.3.3.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/maplibre/vt-pbf"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "7447b95d477ae1141bc4dc72d8ecc89099f03435a35664978c277403bccb8ab9bb409fd659b9ad0c52247ec88ce32b7572996acc6ea84a2bd161e5b1d52335ca"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "@types/geojson@7946.0.16",
+      "type": "library",
+      "name": "@types/geojson",
+      "version": "7946.0.16",
+      "scope": "required",
+      "description": "TypeScript definitions for geojson",
+      "purl": "pkg:npm/%40types/geojson@7946.0.16",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@types/geojson/-/geojson-7946.0.16.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/geojson"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "e82f27a96babde3f7c53afa55c37d351621f82f654f84ba6be91ca7188ee8ca1fbc286322e3dac5267dfd2d461aea33b068854c3b3f3dd90758e3da05bd16f9a"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "bidi-js@1.1.0",
+      "type": "library",
+      "name": "bidi-js",
+      "version": "1.1.0",
+      "scope": "required",
+      "author": "Jason Johnston",
+      "description": "A JavaScript implementation of the Unicode Bidirectional Algorithm",
+      "purl": "pkg:npm/bidi-js@1.1.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/bidi-js/-/bidi-js-1.1.0.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/lojjic/bidi-js.git"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "7d7d4e9e4d2d7553c2ee86cf581e446c9d73ecd5612eae26db164bab6617064c7331720646934c53cf27d043e05ac78a975d89ef35eceeaac3c4f2b8b11b367e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "earcut@3.2.4",
+      "type": "library",
+      "name": "earcut",
+      "version": "3.2.4",
+      "scope": "required",
+      "author": "Volodymyr Agafonkin",
+      "description": "The fastest and smallest JavaScript polygon triangulation library for your WebGL apps",
+      "purl": "pkg:npm/earcut@3.2.4",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/earcut/-/earcut-3.2.4.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "git://github.com/mapbox/earcut.git"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "14773ac8da674ce441d2d339926674de20f6983b8d6a40c4da5bdfe07c355e47f1b441c81958b4d41fc6a944b0c7e35c0b55868e27407e94d7cde00bb4fb5fa6"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "gl-matrix@3.4.4",
+      "type": "library",
+      "name": "gl-matrix",
+      "version": "3.4.4",
+      "scope": "required",
+      "description": "Javascript Matrix and Vector library for High Performance WebGL apps",
+      "purl": "pkg:npm/gl-matrix@3.4.4",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/gl-matrix/-/gl-matrix-3.4.4.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/toji/gl-matrix.git"
+        },
+        {
+          "type": "website",
+          "url": "http://glmatrix.net"
+        },
+        {
+          "type": "issue-tracker",
+          "url": "https://github.com/toji/gl-matrix/issues"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "95ab529f20cdb7ff3361407a54827a3c28768c18c95fa8270eca0267b2f25bb1a4aab0f9d445b06bda82a068b18fc62a06d11340aff163b3a6a5317cc73d4375"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "json-stringify-pretty-compact@4.0.0",
+      "type": "library",
+      "name": "json-stringify-pretty-compact",
+      "version": "4.0.0",
+      "scope": "required",
+      "author": "Simon Lydell",
+      "description": "The best of both `JSON.stringify(obj)` and `JSON.stringify(obj, null, indent)`.",
+      "purl": "pkg:npm/json-stringify-pretty-compact@4.0.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/json-stringify-pretty-compact/-/json-stringify-pretty-compact-4.0.0.tgz"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "dc2359d839eba41c86f4daa3e97a3cbea6e34f817a37eb5be066f6f04480663619e72aaf99ce7a27efe4b88c2468030ec9b953421516ecfc4c9146fc437e8ddd"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "kdbush@4.1.0",
+      "type": "library",
+      "name": "kdbush",
+      "version": "4.1.0",
+      "scope": "required",
+      "author": "Vladimir Agafonkin",
+      "description": "A very fast static 2D index for points based on kd-tree.",
+      "purl": "pkg:npm/kdbush@4.1.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/kdbush/-/kdbush-4.1.0.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "git://github.com/mourner/kdbush.git"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "7bdbeeaf3ad7250ac55fa724a473f76ef8f997ef429d8ce4c43367350d61d904ea756b1400981788a74635c39ad4463ce5d53c29b43ecff15d41d07b3fef727d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "lucide@1.64.0",
+      "type": "library",
+      "name": "lucide",
+      "version": "1.64.0",
+      "scope": "required",
+      "description": "A Lucide icon library package for web and javascript applications.",
+      "purl": "pkg:npm/lucide@1.64.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/lucide/-/lucide-1.64.0.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/lucide-icons/lucide.git"
+        },
+        {
+          "type": "website",
+          "url": "https://lucide.dev"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "da4e3cd69fb676723cf04e5c857f03d678b02736abff410c159c12f7713fba61d5c65f8fa39ba80c81aea3ae088f76b7e58683d49e84b16ba50f329aa1de703b"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "maplibre-gl@6.18.0",
+      "type": "library",
+      "name": "maplibre-gl",
+      "version": "6.18.0",
+      "scope": "required",
+      "description": "BSD licensed community fork of mapbox-gl, a WebGL interactive maps library",
+      "purl": "pkg:npm/maplibre-gl@6.18.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/maplibre-gl/-/maplibre-gl-6.18.0.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/maplibre/maplibre-gl-js"
+        },
+        {
+          "type": "website",
+          "url": "https://maplibre.org/"
+        },
+        {
+          "type": "issue-tracker",
+          "url": "https://github.com/maplibre/maplibre-gl-js/issues/"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "f2e713f91849b4464616f5863e2a15430bce3cc008b947a1120c65d9d10bc3d689997e12a548be3821c7003df707d12ea21342ee40bf81c70969c5204cc41f41"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "minimist@1.2.8",
+      "type": "library",
+      "name": "minimist",
+      "version": "1.2.8",
+      "scope": "required",
+      "author": "James Halliday",
+      "description": "parse argument options",
+      "purl": "pkg:npm/minimist@1.2.8",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/minimist/-/minimist-1.2.8.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "git://github.com/minimistjs/minimist.git"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/minimistjs/minimist"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "db2c8047ca8190ddd8ba17896a7529582e54ddb6f9a2c0f2c0d07c4730d5943c031dba1c009bdeaaa8f5bbcf92543ee39164f8cafb070a95aaa96a80c5bd3308"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "murmurhash-js@1.0.0",
+      "type": "library",
+      "name": "murmurhash-js",
+      "version": "1.0.0",
+      "scope": "required",
+      "author": "Gary Court",
+      "description": "Native JS murmur hash implementation",
+      "purl": "pkg:npm/murmurhash-js@1.0.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/murmurhash-js/-/murmurhash-js-1.0.0.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "git://github.com/mikolalysenko/murmurhash-js.git"
+        },
+        {
+          "type": "issue-tracker",
+          "url": "https://github.com/mikolalysenko/murmurhash-js/issues"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "4ef9a436192ff3272dd125414b2fa8f306335e3138673dcf09eb1b7ecf078825d775c4eea1c02916fd7551694d156298b0fda892aae16fb24d9529bd22706123"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "pbf@5.1.2",
+      "type": "library",
+      "name": "pbf",
+      "version": "5.1.2",
+      "scope": "required",
+      "author": "Konstantin Kaefer",
+      "description": "a low-level, lightweight protocol buffers implementation in JavaScript",
+      "purl": "pkg:npm/pbf@5.1.2",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/pbf/-/pbf-5.1.2.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "git+ssh://git@github.com/mapbox/pbf.git"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/mapbox/pbf"
+        },
+        {
+          "type": "issue-tracker",
+          "url": "https://github.com/mapbox/pbf/issues"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "9a7bc676f3ab22f24e04650474692b5578cdf04fd590824291fd9e4b50c7db2bfcd8e45494bb6d983b74ad6637f32619995c1c899c0152f1ccdb4ab10597f8d3"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "potpack@2.1.0",
+      "type": "library",
+      "name": "potpack",
+      "version": "2.1.0",
+      "scope": "required",
+      "author": "Vladimir Agafonkin",
+      "description": "A tiny library for packing 2D rectangles (for sprite layouts)",
+      "purl": "pkg:npm/potpack@2.1.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/potpack/-/potpack-2.1.0.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "git+https://github.com/mapbox/potpack.git"
+        },
+        {
+          "type": "website",
+          "url": "https://mapbox.github.io/potpack/"
+        },
+        {
+          "type": "issue-tracker",
+          "url": "https://github.com/mapbox/potpack/issues"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "a5c6928507354a1ab4cbe13b1aa26abd98fc0d3b61595d4a78719d8b467a2008a7d8e8b72672c239fc270a8f38a9cf87029e76c13f672bd1fb140269e5ae3819"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "protocol-buffers-schema@3.6.1",
+      "type": "library",
+      "name": "protocol-buffers-schema",
+      "version": "3.6.1",
+      "scope": "required",
+      "author": "Mathias Buus",
+      "description": "No nonsense protocol buffers schema parser written in Javascript",
+      "purl": "pkg:npm/protocol-buffers-schema@3.6.1",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/protocol-buffers-schema/-/protocol-buffers-schema-3.6.1.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/mafintosh/protocol-buffers-schema"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/mafintosh/protocol-buffers-schema"
+        },
+        {
+          "type": "issue-tracker",
+          "url": "https://github.com/mafintosh/protocol-buffers-schema/issues"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "546d8aeb7220922bfda7bead93596295ccc42b5713fa40a32ad91d870d5d41957793721725b777a3a1e8f1bf732596874a74f684a7b823e39b997f70ea6e5299"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "quickselect@3.0.0",
+      "type": "library",
+      "name": "quickselect",
+      "version": "3.0.0",
+      "scope": "required",
+      "author": "Vladimir Agafonkin",
+      "description": "A tiny and fast selection algorithm in JavaScript.",
+      "purl": "pkg:npm/quickselect@3.0.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/quickselect/-/quickselect-3.0.0.tgz"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "5dd8d402b6cae019b97cb2ef966e4aa5314e88e4e181f5962386b10190d683813fd2629d67223db4d11f76cdbba828b5cdefefc13475ea4be6986851adaddcda"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "require-from-string@2.0.2",
+      "type": "library",
+      "name": "require-from-string",
+      "version": "2.0.2",
+      "scope": "required",
+      "author": "Vsevolod Strukchinsky",
+      "description": "Require module from string",
+      "purl": "pkg:npm/require-from-string@2.0.2",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/require-from-string/-/require-from-string-2.0.2.tgz"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "5dfd2759ee91b1ece214cbbe029f5b8a251b9a996ae92f7fa7eef0ed85cffc904786b5030d48706bebc0372b9bbaa7d9593bde53ffc36151ac0c6ed128bfef13"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "resolve-protobuf-schema@2.1.0",
+      "type": "library",
+      "name": "resolve-protobuf-schema",
+      "version": "2.1.0",
+      "scope": "required",
+      "author": "Mathias Buus (@mafintosh)",
+      "description": "Read a protobuf schema from the disk, parse it and resolve all imports",
+      "purl": "pkg:npm/resolve-protobuf-schema@2.1.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/resolve-protobuf-schema/-/resolve-protobuf-schema-2.1.0.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/mafintosh/resolve-protobuf-schema.git"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/mafintosh/resolve-protobuf-schema"
+        },
+        {
+          "type": "issue-tracker",
+          "url": "https://github.com/mafintosh/resolve-protobuf-schema/issues"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "908e5f7d38995a625a4bf86e33cc197c431eaf579177ba094210eec5e08b7b7b7b37b997df3f7808dd313f1050c456104d2373f53d22fafea29caa9274af31ad"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "three@0.186.1",
+      "type": "library",
+      "name": "three",
+      "version": "0.186.1",
+      "scope": "required",
+      "author": "mrdoob",
+      "description": "JavaScript 3D library",
+      "purl": "pkg:npm/three@0.186.1",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/three/-/three-0.186.1.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/mrdoob/three.js"
+        },
+        {
+          "type": "website",
+          "url": "https://threejs.org/"
+        },
+        {
+          "type": "issue-tracker",
+          "url": "https://github.com/mrdoob/three.js/issues"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "6e515ea9be3dc110921941a3ee0b697e74861f2da5c0393de11854992d5cfe14dbcbbd24bc285b5a9909e0f9b5dfdd0bab3cef4e6ce05ca1cf11a7c9c026fc8c"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "tinyqueue@3.0.0",
+      "type": "library",
+      "name": "tinyqueue",
+      "version": "3.0.0",
+      "scope": "required",
+      "description": "The smallest and simplest JavaScript priority queue",
+      "purl": "pkg:npm/tinyqueue@3.0.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/tinyqueue/-/tinyqueue-3.0.0.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/mourner/tinyqueue.git"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/mourner/tinyqueue"
+        },
+        {
+          "type": "issue-tracker",
+          "url": "https://github.com/mourner/tinyqueue/issues"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "8116bd830614dc40a6418bf796c96db39871b886bdd2f79a11cc4362ebb740638800433698e664547a78f00349baed42511b51747294058e4b9b5b4757eb03e2"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "allready@1.0.0",
+      "dependsOn": [
+        "lucide@1.64.0",
+        "maplibre-gl@6.18.0",
+        "three@0.186.1"
+      ]
+    },
+    {
+      "ref": "@mapbox/jsonlint-lines-primitives@2.0.3",
+      "dependsOn": []
+    },
+    {
+      "ref": "@mapbox/point-geometry@1.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "@mapbox/tiny-sdf@2.3.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "@mapbox/unitbezier@1.0.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "@mapbox/vector-tile@3.0.0",
+      "dependsOn": [
+        "@mapbox/point-geometry@1.1.0",
+        "@types/geojson@7946.0.16",
+        "pbf@5.1.2"
+      ]
+    },
+    {
+      "ref": "@maplibre/geojson-vt@6.3.0",
+      "dependsOn": [
+        "kdbush@4.1.0"
+      ]
+    },
+    {
+      "ref": "@maplibre/maplibre-gl-style-spec@26.8.0",
+      "dependsOn": [
+        "@mapbox/jsonlint-lines-primitives@2.0.3",
+        "@mapbox/unitbezier@1.0.0",
+        "json-stringify-pretty-compact@4.0.0",
+        "minimist@1.2.8",
+        "quickselect@3.0.0",
+        "tinyqueue@3.0.0"
+      ]
+    },
+    {
+      "ref": "@maplibre/mlt@1.3.0",
+      "dependsOn": [
+        "@mapbox/point-geometry@1.1.0"
+      ]
+    },
+    {
+      "ref": "@maplibre/vt-pbf@4.3.3",
+      "dependsOn": [
+        "@mapbox/point-geometry@1.1.0",
+        "@types/geojson@7946.0.16",
+        "pbf@5.1.2"
+      ]
+    },
+    {
+      "ref": "@types/geojson@7946.0.16",
+      "dependsOn": []
+    },
+    {
+      "ref": "bidi-js@1.1.0",
+      "dependsOn": [
+        "require-from-string@2.0.2"
+      ]
+    },
+    {
+      "ref": "earcut@3.2.4",
+      "dependsOn": []
+    },
+    {
+      "ref": "gl-matrix@3.4.4",
+      "dependsOn": []
+    },
+    {
+      "ref": "json-stringify-pretty-compact@4.0.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "kdbush@4.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "lucide@1.64.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "maplibre-gl@6.18.0",
+      "dependsOn": [
+        "@mapbox/point-geometry@1.1.0",
+        "@mapbox/tiny-sdf@2.3.0",
+        "@mapbox/unitbezier@1.0.0",
+        "@mapbox/vector-tile@3.0.0",
+        "@maplibre/geojson-vt@6.3.0",
+        "@maplibre/maplibre-gl-style-spec@26.8.0",
+        "@maplibre/mlt@1.3.0",
+        "@maplibre/vt-pbf@4.3.3",
+        "@types/geojson@7946.0.16",
+        "bidi-js@1.1.0",
+        "earcut@3.2.4",
+        "gl-matrix@3.4.4",
+        "kdbush@4.1.0",
+        "murmurhash-js@1.0.0",
+        "pbf@5.1.2",
+        "potpack@2.1.0",
+        "quickselect@3.0.0",
+        "tinyqueue@3.0.0"
+      ]
+    },
+    {
+      "ref": "minimist@1.2.8",
+      "dependsOn": []
+    },
+    {
+      "ref": "murmurhash-js@1.0.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pbf@5.1.2",
+      "dependsOn": [
+        "resolve-protobuf-schema@2.1.0"
+      ]
+    },
+    {
+      "ref": "potpack@2.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "protocol-buffers-schema@3.6.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "quickselect@3.0.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "require-from-string@2.0.2",
+      "dependsOn": []
+    },
+    {
+      "ref": "resolve-protobuf-schema@2.1.0",
+      "dependsOn": [
+        "protocol-buffers-schema@3.6.1"
+      ]
+    },
+    {
+      "ref": "three@0.186.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "tinyqueue@3.0.0",
+      "dependsOn": []
+    }
+  ]
+}

@@ -4,13 +4,15 @@
    the fields and the geometry, so we can go straight to /query and keep the code short.
    Everything here is a public, no-key, read-only GET. */
 
+import { fetchT } from "./net.js";
+
 const enc = encodeURIComponent;
 
 /** One page of an ArcGIS feature layer, as Esri JSON (attributes + geometry in WGS84). */
 async function page(url, { where = "1=1", fields = "*", geometry = true, offset = 0, count = 2000, signal, extra = "" } = {}) {
   const q = `${url}/query?where=${enc(where)}&outFields=${enc(fields)}&returnGeometry=${geometry}&outSR=4326&f=json${extra}` +
     (offset ? `&resultOffset=${offset}` : "") + `&resultRecordCount=${count}`;
-  const r = await fetch(q, { signal });
+  const r = await fetchT(q, { signal }, 12000);
   if (!r.ok) throw new Error(`${url.split("/services/")[1] || url} answered ${r.status}`);
   const j = await r.json();
   if (j.error) throw new Error(j.error.message || "query failed");
@@ -39,7 +41,7 @@ export async function rows(url, opts = {}) {
 export async function geo(url, opts = {}) {
   const q = `${url}/query?where=${enc(opts.where || "1=1")}&outFields=${enc(opts.fields || "*")}&returnGeometry=true&outSR=4326&f=geojson` +
     `&maxAllowableOffset=${opts.simplify ?? 0.0003}&geometryPrecision=5&resultRecordCount=${opts.count || 2000}`;
-  const r = await fetch(q);
+  const r = await fetchT(q, {}, 30000);
   if (!r.ok) throw new Error(`service answered ${r.status}`);
   const j = await r.json();
   if (j.error) throw new Error(j.error.message || "query failed");

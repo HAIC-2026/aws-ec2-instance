@@ -3,11 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<style>/* first paint: page colour, no unstyled flash, smooth page-to-page */
+html{background:#030812}
+@view-transition{navigation:auto}
+@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
+::view-transition-old(root),::view-transition-new(root){animation-duration:.16s}
+body{opacity:0;animation:ar-show 0s 1s forwards}
+@keyframes ar-show{to{opacity:1}}
+</style>
   <title>AllReady · Access and functional needs planning for Hawaiʻi</title>
   <meta name="description" content="AllReady helps Hawaiʻi plan mass care so people with access and functional needs are already in the plan before a disaster.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./fonts/fonts.css">
   <script>document.documentElement.classList.add("js");</script>
 </head>
 <body>
@@ -21,12 +28,13 @@
   <header class="top">
     <a class="mark" href="#sec-0" aria-label="AllReady, back to top">All<span>Ready</span><small>Access and functional needs planning · Hawaiʻi</small></a>
     <nav class="top-nav" aria-label="Primary">
+      <a href="index.html">Live map</a>
       <a href="scenarios.html">Event planner</a>
-      <a href="insights.html">Insights</a>
       <a href="roles.html">Coordination</a>
+      <a href="insights.html">Insights</a>
       <a href="method.html">Data health</a>
       <span id="lang-host"></span>
-      <a class="pill" href="index.html">Open planning map</a>
+      <a class="pill" href="scenarios.html">Plan an event</a>
     </nav>
   </header>
 
@@ -50,14 +58,14 @@
         <p class="lede">When a hurricane, wildfire, tsunami or flood threatens Hawaiʻi, the people who need the most help should be in the plan before it arrives. AllReady brings together where residents with access and functional needs live, what each county’s shelters can support, and who acts when.</p>
         <p class="status" id="liveStatus" role="status">Reading live feeds…</p>
         <div class="actions">
-          <a class="btn primary" href="index.html">Open planning map</a>
+          <a class="btn primary" href="index.html">Open the live map</a>
           <a class="btn" href="scenarios.html">Plan an event</a>
-          <a class="btn" href="insights.html">Open insights</a>
+          <a class="btn" href="insights.html">Open Insights</a>
         </div>
-        <ul class="pillars">
-          <li><b>Who and where</b>Residents by census tract across the CMIST needs: communication, medical, independence, safety and support, transportation.</li>
-          <li><b>What it takes</b>Shelter space, accessible space, power, water, transport and more, set against what the counties have on record.</li>
-          <li><b>Who acts</b>Counties lead mass care and the State supports. Decision points, contacts and an assistant that reads the live map.</li>
+        <ul class="pillars" aria-label="The three parts of the DHS planning framework">
+          <li><b>1 · Who and where</b>Residents by census tract across the CMIST needs: communication, medical, independence, safety and support, transportation.<a href="index.html">Live map →</a></li>
+          <li><b>2 · What it takes</b>Shelter space, accessible space, power, water, transport and more, set against what the counties have on record.<a href="scenarios.html">Event planner →</a></li>
+          <li><b>3 · Who acts</b>Counties lead mass care and the State supports. Roles, decision points, partner commitments and how residents are told.<a href="roles.html">Coordination →</a></li>
         </ul>
         <p class="hint"><i></i>Scroll for each island’s current figures</p>
       </div>
@@ -78,7 +86,7 @@
           <div><dt>Shelter spaces on record</dt><dd data-f="cap">…</dd></div>
         </dl>
         <p class="fine" data-f="note"></p>
-        <a class="btn sm" href="index.html?island=niihau">Open Niʻihau on the planning map</a>
+        <a class="btn sm" href="index.html?island=niihau">Open Niʻihau on the live map</a>
       </div>
     </section>
 
@@ -97,7 +105,7 @@
           <div><dt>Shelter spaces on record</dt><dd data-f="cap">…</dd></div>
         </dl>
         <p class="fine" data-f="note"></p>
-        <a class="btn sm" href="index.html?island=kauai">Open Kauaʻi on the planning map</a>
+        <a class="btn sm" href="index.html?island=kauai">Open Kauaʻi on the live map</a>
       </div>
     </section>
 
@@ -116,7 +124,7 @@
           <div><dt>Shelter spaces on record</dt><dd data-f="cap">…</dd></div>
         </dl>
         <p class="fine" data-f="note"></p>
-        <a class="btn sm" href="index.html?island=oahu">Open Oʻahu on the planning map</a>
+        <a class="btn sm" href="index.html?island=oahu">Open Oʻahu on the live map</a>
       </div>
     </section>
 
@@ -135,7 +143,7 @@
           <div><dt>Shelter spaces on record</dt><dd data-f="cap">…</dd></div>
         </dl>
         <p class="fine" data-f="note"></p>
-        <a class="btn sm" href="index.html?island=molokai">Open Molokaʻi on the planning map</a>
+        <a class="btn sm" href="index.html?island=molokai">Open Molokaʻi on the live map</a>
       </div>
     </section>
 
@@ -154,7 +162,7 @@
           <div><dt>Shelter spaces on record</dt><dd data-f="cap">…</dd></div>
         </dl>
         <p class="fine" data-f="note"></p>
-        <a class="btn sm" href="index.html?island=lanai">Open Lānaʻi on the planning map</a>
+        <a class="btn sm" href="index.html?island=lanai">Open Lānaʻi on the live map</a>
       </div>
     </section>
 
@@ -173,7 +181,7 @@
           <div><dt>Shelter spaces on record</dt><dd data-f="cap">…</dd></div>
         </dl>
         <p class="fine" data-f="note"></p>
-        <a class="btn sm" href="index.html?island=kahoolawe">Open Kahoʻolawe on the planning map</a>
+        <a class="btn sm" href="index.html?island=kahoolawe">Open Kahoʻolawe on the live map</a>
       </div>
     </section>
 
@@ -192,7 +200,7 @@
           <div><dt>Shelter spaces on record</dt><dd data-f="cap">…</dd></div>
         </dl>
         <p class="fine" data-f="note"></p>
-        <a class="btn sm" href="index.html?island=maui">Open Maui on the planning map</a>
+        <a class="btn sm" href="index.html?island=maui">Open Maui on the live map</a>
       </div>
     </section>
 
@@ -211,7 +219,7 @@
           <div><dt>Shelter spaces on record</dt><dd data-f="cap">…</dd></div>
         </dl>
         <p class="fine" data-f="note"></p>
-        <a class="btn sm" href="index.html?island=hawaii">Open Hawaiʻi Island on the planning map</a>
+        <a class="btn sm" href="index.html?island=hawaii">Open Hawaiʻi Island on the live map</a>
       </div>
     </section>
 
@@ -221,9 +229,9 @@
         <h2>Plan before the event.</h2>
         <p>Built for the Hawaiʻi Department of Human Services, HI-EMA, county emergency management agencies and their partners. Public, de-identified, area-level data only. No personal information, no registry, no alerts issued.</p>
         <div class="actions">
-          <a class="btn primary" href="index.html">Open planning map</a>
+          <a class="btn primary" href="index.html">Open the live map</a>
           <a class="btn" href="scenarios.html">Plan an event</a>
-          <a class="btn" href="insights.html">Open insights</a>
+          <a class="btn" href="insights.html">Open Insights</a>
           <button id="replay" class="btn">Back to the top</button>
         </div>
         <p class="fine" id="srcLine">Figures: CDC/ATSDR Social Vulnerability Index 2022 (census tracts), county shelter feeds (live), National Weather Service (live). Island totals count census tracts whose centre falls on that island. The background is an illustration, not a hazard map.</p>

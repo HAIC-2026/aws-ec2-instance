@@ -3,11 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="./boot.js"></script>
+<meta name="color-scheme" content="light dark">
+<style>/* first paint: page colour, no unstyled flash, smooth page-to-page */
+html{background:#f1f3f6}html[data-theme=dark]{background:#0e141b}#top{min-height:52px;background:#13294b}html[data-theme=dark] #top{background:#0a1626}
+@view-transition{navigation:auto}
+@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
+::view-transition-old(root),::view-transition-new(root){animation-duration:.16s}
+body{opacity:0;animation:ar-show 0s 1s forwards}
+@keyframes ar-show{to{opacity:1}}
+</style>
 <meta name="description" content="AllReady coordination: who leads and supports each mass-care function for access and functional needs in Hawaiʻi, how warnings reach residents, and partner commitments measured against need.">
 <title>AllReady · Coordination</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./fonts/fonts.css">
 </head>
 <body class="site">
 <a class="skip" href="#main">Skip to the content</a>
