@@ -12,7 +12,7 @@
     "sbom": "npm sbom --sbom-format=cyclonedx --omit=dev > docs/sbom.cdx.json"
   },
   "devDependencies": {
-    "vite": "^6.3.5"
+    "vite": "^8.3.8"
   },
   "allowScripts": {
     "esbuild@0.25.12": true
