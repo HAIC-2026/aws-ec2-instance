@@ -26,26 +26,26 @@ DHS asked one question: *how do we make sure the people who need the most help a
 |---|---|---|
 | **Home** (`home.html`) | What is this and what is true today? | Live figures per island, read from the feeds as the page opens. |
 | **Live map** (`index.html`) | What is happening now, and where? | Live NWS event, AFN census tracts, shelters, hazard layers, a year of alert history, map markup, and the assistant. |
-| **Scenarios** (`scenarios.html`) | If this hazard hits this county, who needs what? | A county × hazard grid; residents inside each published hazard zone; needs across all five CMIST areas; supply and gaps with *who to call*; shelter demand phase by phase against capacity; decision points; a printable brief. |
+| **Event planner** (`scenarios.html`) | If this hazard hits this county, who needs what? | A county × hazard grid; residents inside each published hazard zone; needs across all five CMIST areas; supply and gaps with *who to call*; shelter demand phase by phase against capacity; decision points; a printable brief. |
 | **Insights** (`insights.html`) | So what, across the state? | A dashboard of live metric tiles, county data readiness, gaps, an AI summary and the check against past events. |
-| **Partners & roles** (`roles.html`) | Who meets each need, and how are residents told? | Roles matrix, communication pathways, and a register of partner pledges that the Scenarios page counts against each gap. |
-| **Data & method** (`method.html`) | Can I trust this number? | Every source checked live from the browser, coverage against the DHS goals, every planning factor, the past-events check, and questions for DHS. |
+| **Coordination** (`roles.html`) | Who meets each need, and how are residents told? | Roles matrix, communication pathways, and a register of partner commitments that the Event planner counts against each gap. |
+| **Data health** (`method.html`) | Can I trust this number? | Every source checked live from the browser, coverage against the DHS goals, every planning factor, the past-events check, and questions for DHS. |
 
 ## For judges: five minutes
 
 1. **Home.** Every figure under each island is read live; nothing is typed in.
-2. **Scenarios.** The grid shows people likely to need a public shelter for every county and hazard. Pick *Maui · Wildfire*: residents inside the State's High fire-risk areas, the five CMIST needs, the gaps, and for every unknown the organisation to call. Switch intensity to *Near miss*, which is calibrated to turnout actually counted in a past Hawaiʻi event. *Print this brief* gives one page.
-3. **Live map.** The chip says **Live**: the event is whatever the National Weather Service has in force. With nothing in force the app calculates no needs and offers to rehearse one instead. *Open on the live map* from Scenarios lands on that county with the event clock open.
-4. Ask the **Assistant** *“Summarise the map”*, or on Scenarios *“Unknowns and who to call”*. It runs on the planner's own machine and uses only the figures on screen.
-5. **Data & method.** Every source is checked live from your browser, with coverage against each DHS goal and the questions only DHS can answer.
+2. **Event planner.** The grid shows people likely to need a public shelter for every county and hazard. Pick *Maui · Wildfire*: residents inside the State's High fire-risk areas, the five CMIST needs, the gaps, and for every unknown the organisation to call. Switch intensity to *Near miss*, which is calibrated to turnout actually counted in a past Hawaiʻi event. *Print brief* gives one page.
+3. **Live map.** The chip says **Live**: the event is whatever the National Weather Service has in force. With nothing in force the app calculates no needs and offers to rehearse one instead. *Open on the live map* from the Event planner lands on that county with the event clock open.
+4. Ask the **Assistant** *“Summarise the map”*, or in the Event planner *“Unknowns and who confirms them”*. It runs on the planner's own machine and uses only the figures on screen.
+5. **Data health.** Every source is checked live from your browser, with coverage against each DHS goal and the questions only DHS can answer.
 
 ## What it does
 
 | DHS asked for | Where | What you get |
 |---|---|---|
-| **1. Population mapping** | Scenarios, Live map, Data & method | All 432 populated 2020 census tracts, with the residents inside each hazard's published zone (tsunami evacuation zone, High fire-risk area, FEMA flood zone, whole island for hurricane) from 2020 Census blocks, scored on CMIST measures (CDC/ATSDR SVI 2022) and HHS emPOWER, beside each county's own shelter records. |
-| **2. Resource identification** | Scenarios, Insights | A per-hazard model turns residents in the zone into shelter demand (with a low–high range and three intensities) and then into space, accessible space, power, water, meals, dialysis, interpreters, transport and pet capacity, set against what counties publish and partners pledge. A gap that cannot be computed is shown as **ask** with the organisation that holds the answer, never guessed. |
-| **3. Coordinated response** | Scenarios, Partners & roles, Live map | County-led, State-supported decision points with owner, trigger, channel and languages; a roles matrix; communication pathways; a partner pledge register; shapes, icons and points of contact on the map; printable briefs; an assistant grounded in the on-screen figures. |
+| **1. Population mapping** | Event planner, Live map, Data health | All 432 populated 2020 census tracts, with the residents inside each hazard's published zone (tsunami evacuation zone, High fire-risk area, FEMA flood zone, whole island for hurricane) from 2020 Census blocks, scored on CMIST measures (CDC/ATSDR SVI 2022) and HHS emPOWER, beside each county's own shelter records. |
+| **2. Resource identification** | Event planner, Insights | A per-hazard model turns residents in the zone into shelter demand (with a low–high range and three intensities) and then into space, accessible space, power, water, meals, dialysis, interpreters, transport and pet capacity, set against what counties publish and partners pledge. A gap that cannot be computed is shown as **ask** with the organisation that holds the answer, never guessed. |
+| **3. Coordinated response** | Event planner, Coordination, Live map | County-led, State-supported decision points with owner, trigger, channel and languages; a roles matrix; communication pathways; a partner commitment register; shapes, icons and points of contact on the map; printable briefs; an assistant grounded in the on-screen figures. |
 
 ### Live by default
 
@@ -194,7 +194,7 @@ node scripts/build-exposure.mjs
 | Hawaiʻi Statewide GIS, FEMA NFHL | Tsunami evacuation zones, fire risk areas, flood zones | as published |
 | U.S. Census Bureau TIGERweb, 2020 Census blocks | Where residents live inside each hazard zone | decennial; `scripts/build-exposure.mjs` |
 
-**Maui County publishes no machine-readable shelter layer.** AllReady reports that as a finding and does not fill it in. No DHS client data, no personal information and no individual registry are used anywhere.
+**Maui County publishes no shelter list of its own.** AllReady reads Maui sites from FEMA's live National Shelter System (kept in step with the American Red Cross) and labels them as registered sites, not county designations. Only facility fields are requested; the service's point-of-contact fields are never read. No DHS client data, no personal information and no individual registry are used anywhere.
 
 ## Repository layout
 
@@ -209,7 +209,7 @@ src/
   assistant.js    assistant panel (text-only rendering)  insights.js    dashboard grid and widgets
   lang.js         seven interface languages              sources.js     the list of every feed
   scenarios.js    scenario planner                       exposure.js    residents inside each hazard zone
-  roles.js        roles, pathways, partner register      match.js       who to call; pledge register
+  roles.js        roles, pathways, commitment register      match.js       who confirms supply; commitment register
   method.js       live source check, coverage, factors   nav.js         navigation shared by every page
   site.css        design system for the planning pages
 server/

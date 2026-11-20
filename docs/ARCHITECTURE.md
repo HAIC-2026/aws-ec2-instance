@@ -14,7 +14,7 @@
 │   index.html      live map: layers, live event, markup, assistant     │
 │   scenarios.html  county × hazard planner, CMIST needs, gaps, brief   │
 │   insights.html   metric tiles, gaps, readiness, past-events check    │
-│   roles.html      roles matrix, pathways, partner pledge register     │
+│   roles.html      roles matrix, pathways, partner commitment register     │
 │   method.html     live source check, coverage, factors, questions     │
 │                                                                       │
 │   feeds → normalise → model (needs → resources → gaps) → panels       │
@@ -95,14 +95,14 @@ The AFN measures live in `src/svi.js`, planning factors in `src/model.js`, the s
 - **Rejected:** doing that intersection in the browser on every visit.
 - **Why:** it needs about 12,000 flood polygons; downloading them on every page load would cost megabytes and a long wait, for zones that change only when the State republishes them. The script is re-runnable, the file records its sources and date, and the census counts it is applied to stay live. Block points rather than tract areas count people where they live, not where land is.
 
-### 11. Scenarios is a separate page from the live map
+### 11. The Event planner is a separate page from the live map
 
 - **Chosen:** a dedicated planning page for county × hazard rehearsal, with the live map kept for what is happening now.
-- **Why:** mixing the two is how a dashboard ends up showing a hypothetical hurricane as if it were real. Scenarios is labelled what-if everywhere, deep-links into the live map's what-if mode, and a real NWS alert on its ribbon points back to the live map.
+- **Why:** mixing the two is how a dashboard ends up showing a hypothetical hurricane as if it were real. The Event planner is labelled what-if everywhere, deep-links into the live map's what-if mode, and a real NWS alert on its ribbon points back to the live map.
 
 ### 12. Partner capacity stays organisation-level and local
 
-- **Chosen:** a pledge register in the planner's browser, exported and imported as CSV, that refuses anything resembling a phone number, email or personal identifier.
+- **Chosen:** a commitment register in the planner's browser, exported and imported as CSV, that refuses anything resembling a phone number, email or personal identifier.
 - **Rejected:** a shared server-side database of partner contacts.
 - **Why:** it is the first rung up from a phone call without creating a store of personal data to secure. A State deployment would move it behind sign-in.
 
@@ -147,5 +147,5 @@ One small Node process, or static hosting without the assistant. No database, no
 3. Planning factors and the Goal 3 baseline need validation with DHS and county emergency management agencies.
 4. No formal WCAG 2.1 AA audit or screen-reader test has been done.
 5. Resident-facing multilingual messages are described in decision points but not generated; translations need community review.
-6. Maui County has no machine-readable shelter feed; the app can only report the gap.
+6. Maui County publishes no shelter list of its own; Maui sites come from FEMA's National Shelter System, which registers sites but does not say which ones the County would open.
 7. For State use: single sign-on, server-side audit logging and an approved model endpoint (see [SECURITY.md](SECURITY.md)).

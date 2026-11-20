@@ -65,7 +65,7 @@ const inA = (a) => (x) => a === "state" || (x.countyFips || x.fips) === a;
 const tsum = (D, a, k) => D.tracts.filter(inA(a)).reduce((t, x) => t + (x[k] || 0), 0);
 const sh = (D, a) => D.shelters.filter(inA(a));
 const SVI = "CDC/ATSDR SVI 2022 · ACS 2018–22", COUNTY = "County shelter feeds · live", EMPW = "HHS emPOWER · current release";
-const noFeed = (D, a) => (a === "15009" ? "Maui publishes no shelter feed" : a === "state" ? "Maui not included: no feed" : "");
+const noFeed = (D, a) => (a === "15009" ? "Maui: FEMA shelter registry" : a === "state" ? "Maui from FEMA registry" : "");
 const share = (k) => (D, a) => { const p = tsum(D, a, "pop"); return { v: p ? (tsum(D, a, k) / p) * 100 : null }; };
 const emp = (k) => (D, a) => { if (!D.emp) return { v: null, note: "emPOWER not loaded" }; const rows = Object.values(D.emp.byFips).filter((c) => a === "state" || c.fips === a); return { v: rows.reduce((t, c) => t + (c[k] || 0), 0), note: "Medicare only — a floor" }; };
 /* One colour per domain, the same on every page: shelters teal, people blue, access and
@@ -112,7 +112,7 @@ export const WIDGETS = {
         { k: "residents in scope", v: fmt(plan.demand.atRisk), note: `${tracts.length} census tracts` },
         { k: "projected to need public shelter", v: fmt(plan.demand.shelterPop), note: `${ctx.scenario.n}, ${ctx.phase.n}` },
         { k: "confirmed shelter spaces", v: fmt(plan.supply.spaces), note: `${shelters.length} sites, ${plan.supply.capacityUnknownSites} without a capacity figure`, tone: plan.supply.spaces < plan.demand.shelterPop ? "bad" : "ok" },
-        { k: "counties publishing shelter data", v: `${4 - missing}/4`, note: missing ? "Maui publishes none" : "all four", tone: missing ? "warn" : "ok" },
+        { k: "counties with shelter data", v: `${4 - missing}/4`, note: missing ? "a county feed did not load" : "Maui from FEMA's registry", tone: missing ? "warn" : "ok" },
       ]));
     },
   },

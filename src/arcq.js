@@ -7,8 +7,8 @@
 const enc = encodeURIComponent;
 
 /** One page of an ArcGIS feature layer, as Esri JSON (attributes + geometry in WGS84). */
-async function page(url, { where = "1=1", fields = "*", geometry = true, offset = 0, count = 2000, signal } = {}) {
-  const q = `${url}/query?where=${enc(where)}&outFields=${enc(fields)}&returnGeometry=${geometry}&outSR=4326&f=json` +
+async function page(url, { where = "1=1", fields = "*", geometry = true, offset = 0, count = 2000, signal, extra = "" } = {}) {
+  const q = `${url}/query?where=${enc(where)}&outFields=${enc(fields)}&returnGeometry=${geometry}&outSR=4326&f=json${extra}` +
     (offset ? `&resultOffset=${offset}` : "") + `&resultRecordCount=${count}`;
   const r = await fetch(q, { signal });
   if (!r.ok) throw new Error(`${url.split("/services/")[1] || url} answered ${r.status}`);

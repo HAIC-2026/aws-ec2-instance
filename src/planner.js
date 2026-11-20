@@ -184,7 +184,7 @@ const DEFS = [
   { id: "fires", g: "haz", n: "Active fire detections", s: "NASA FIRMS / VIIRS · replays", d: "VIIRS 375 m thermal anomalies from NASA FIRMS, served by NASA GIBS. Follows the timeline bar. A detection is heat, not a confirmed wildfire.", sw: "#fb923c" },
   { id: "nws", g: "haz", n: "NWS alerts", s: "api.weather.gov · live", d: "Active watches and warnings for Hawaiʻi, drawn on their forecast zones. Open the Alerts tab for the list.", sw: "#f2c14e", leg: "sev" },
   { id: "quake", g: "haz", n: "Earthquakes (M2.5+)", s: "USGS · replays a full year", d: "Magnitude 2.5 and above near the islands. Live view shows the last 30 days; in replay the map shows the timeline's trail window. Circle size is magnitude.", sw: "#e4572e", leg: "quake" },
-  { id: "shel", g: "res", n: "Shelters (county plans)", s: "Honolulu DEM · HCCDA · Kauaʻi EMA · live", d: "Every shelter each county publishes as a live feature service, normalised onto one record shape. Ring colour is activation status; fill is whether the county has published an accessibility record. Maui publishes no machine-readable layer — see the Shelters panel.", sw: "#4d9fff", leg: "shel" },
+  { id: "shel", g: "res", n: "Shelters (county plans)", s: "Honolulu DEM · HCCDA · Kauaʻi EMA · FEMA (Maui) · live", d: "Every shelter each county publishes as a live feature service, normalised onto one record shape. Maui County publishes no list, so its sites come from FEMA's National Shelter System (registered sites, not county designations). Ring colour is activation status; fill is whether an accessibility record exists.", sw: "#4d9fff", leg: "shel" },
 ];
 const BYID = Object.fromEntries(DEFS.map((d) => [d.id, d]));
 
@@ -1173,8 +1173,8 @@ function mapContext() {
       shownFrom: m.from || undefined, shownUntil: m.to || undefined,
       footprint: DATA.afn.features.length ? footprint(m, marks) : "census tracts not loaded yet",
     })),
-    markupNote: marks.length ? "Markup is drawn by the planner for planning. It is not a real or live event." : undefined,
-    dataNotes: ["All figures are area-level public data (CDC/ATSDR SVI 2022, HHS emPOWER, county shelter feeds, NWS, USGS).", "Maui County publishes no machine-readable shelter layer.", "emPOWER counts Medicare beneficiaries only, so it is a floor."],
+    markupNote: marks.length ? "Markup is drawn by planning staff. 'planning note' items are hypothetical; 'field report' items are live staff reports, not official alerts." : undefined,
+    dataNotes: ["All figures are area-level public data (CDC/ATSDR SVI 2022, HHS emPOWER, county shelter feeds, NWS, USGS).", "Maui County publishes no shelter list of its own; Maui sites come from FEMA's National Shelter System (registered, not county-designated).", "emPOWER counts Medicare beneficiaries only, so it is a floor."],
   };
   /* Slow-changing facts first, per-question detail last. A local model keeps the part of the
      prompt it has already read, so a follow-up question only pays for what changed. */

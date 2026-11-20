@@ -629,3 +629,7 @@ h4 { font: 600 11px var(--mono); letter-spacing: .12em; text-transform: uppercas
 .chipbtn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--line); background: var(--surf2); color: var(--cream); font: 500 12px var(--sans); cursor: pointer; text-decoration: none; }
 .chipbtn[style*="--hz"]::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--hz); }
 .chipbtn:hover { border-color: var(--cream); }
+.mk-seg { display: flex; gap: 4px; }
+.mk-seg button { flex: 1; padding: 6px 8px; border-radius: var(--r-ctl, 8px); border: 1px solid var(--line); background: var(--surf2); color: var(--dim); font: 500 12px var(--sans); cursor: pointer; }
+.mk-seg button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.mk-hint + .mk-row { padding: 0 12px 6px; margin-top: 4px; }

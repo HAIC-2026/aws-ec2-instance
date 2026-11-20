@@ -17,7 +17,7 @@ For State production we would add single sign-on with roles, server-side audit l
 | Census-tract measures, emPOWER counts, shelter records, alerts | Fetched from the publisher into the browser's memory | Public |
 | Layout, theme, language, manual supply figures | The planner's browser (`localStorage`) | Low |
 | Markup: shapes, titles, notes | The planner's browser; titles and notes are sent to the model when a question is asked | Low; planner-authored |
-| Partner pledges (organisation, resource, quantity, date, contact role) | The planner's browser; exported as CSV only on request; text that looks like a phone number, email or personal identifier is refused | Organisation-level |
+| Partner commitments (organisation, resource, quantity, date, contact role) | The planner's browser; exported as CSV only on request; text that looks like a phone number, email or personal identifier is refused | Organisation-level |
 | Markup points of contact (agency staff) | The planner's browser only; never sent to the server or the model; leaves only by explicit export | Business contact details |
 | Model API key (hosted providers only) | Server environment variable | Secret |
 | Personal data about residents, DHS client records, health records | **Not collected, not stored, not processed** | Not applicable |
@@ -34,6 +34,8 @@ emPOWER counts from 1 to 10 are shown as a range, as HHS publishes them, and ZIP
 | Leaking a provider key | Key is read from the environment on the server only; `.env` is git-ignored; a test asserts the key never appears in a response | `server/llm.js`, `server/api.test.js` |
 | Other websites spending the model quota | Same-origin check on `Origin` and `Sec-Fetch-Site`; optional allow-list | `server/llm.js` |
 | Flooding the assistant | Per-client rate limit, 120 KB body cap, 24-message and 4,000-character limits, bounded answer length, request and header timeouts | `server/llm.js`, `server/index.js` |
+| Personal data arriving from a public source | FEMA's shelter service includes staff contact fields; queries name only facility fields, so contacts never reach the browser | `src/shelters.js` |
+| Formula injection through exported CSV | Cells beginning with = + - @ are prefixed so a spreadsheet treats them as text; imports are size-capped and validated row by row | `src/match.js` |
 | Reading files outside the web root | Paths are decoded, normalised and checked against the root; malformed and NUL paths are refused; only GET and HEAD are allowed | `server/static.js`, `server/static.test.js` |
 | Clickjacking, MIME sniffing, downgrade | `frame-ancestors 'none'`, `X-Frame-Options: DENY`, `nosniff`, HSTS | `server/security.js` |
 | A malicious or sign-in-protected map service | https only; token-gated services refused; requests carry no credentials; suspect field names hidden | `src/arcgis.js` |
@@ -89,7 +91,7 @@ This is an engineering mapping to show where the design stands. It is **not lega
 
 ### County
 
-Counties lead mass care and own their shelter data. AllReady only reads the feature services each county already publishes to the public, changes nothing in them, and links back to each. A county using the tool would apply its own IT security policy to the workstation it runs on. Where a county publishes no machine-readable layer (Maui), the app reports the gap and does not substitute another list.
+Counties lead mass care and own their shelter data. AllReady only reads the feature services each county already publishes to the public, changes nothing in them, and links back to each. A county using the tool would apply its own IT security policy to the workstation it runs on. Maui County publishes no list of its own, so Maui sites come from FEMA's public National Shelter System and are labelled as registered sites, not county designations. That service also carries point-of-contact names, phones and emails; AllReady requests only facility fields and never reads them.
 
 ## AI safeguards in one place
 

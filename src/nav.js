@@ -1,8 +1,8 @@
 /* AllReady — one navigation for every page. MIT licensed.
 
-   The order follows the DHS framework a planner works through: see the people and hazards
-   (Map), rehearse an event (Scenarios), read the gaps (Insights), connect needs to partners
-   (Partners & roles), and check where every number comes from (Data & method). */
+   The order follows the DHS framework a planner works through: see what is happening (Live
+   map), rehearse an event for any county (Event planner), read the statewide picture
+   (Insights), line up who does what (Coordination), and check the data behind it (Data health). */
 
 import { mountThemeToggle } from "./theme.js";
 import { mountLanguage } from "./lang.js";
@@ -10,10 +10,10 @@ import { mountLanguage } from "./lang.js";
 export const PAGES = [
   { href: "home.html", n: "Home", k: "home" },
   { href: "index.html", n: "Live map", k: "map" },
-  { href: "scenarios.html", n: "Scenarios", k: "scenarios" },
+  { href: "scenarios.html", n: "Event planner", k: "scenarios" },
   { href: "insights.html", n: "Insights", k: "insights" },
-  { href: "roles.html", n: "Partners & roles", k: "roles" },
-  { href: "method.html", n: "Data & method", k: "method" },
+  { href: "roles.html", n: "Coordination", k: "roles" },
+  { href: "method.html", n: "Data health", k: "method" },
 ];
 
 const el = (t, a = {}, ...kids) => {
@@ -30,7 +30,7 @@ export function navLinks(current, cls = "lnk") {
 
 /** The full top bar for the planning pages. `host` is replaced. */
 export function mountTopBar(host, current, sub = "") {
-  const theme = el("div"), lang = el("div"), clock = el("div", { class: "s-clock" }, el("span", {}, "--:--:-- HST"), el("br"), el("span", {}, "Public data only · no PII"));
+  const theme = el("div"), lang = el("div"), clock = el("div", { class: "s-clock" }, el("span", {}, "--:--:-- HST"), el("br"), el("span", {}, "Public, de-identified data"));
   const bar = el("header", { class: "s-top" },
     el("div", { class: "s-top-in" },
       el("a", { class: "s-mark", href: "home.html", "aria-label": "AllReady home" }, el("b", {}, "All", el("span", {}, "Ready")), sub ? el("small", {}, sub) : null),

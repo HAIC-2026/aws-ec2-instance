@@ -10,7 +10,8 @@
                     Available_Room, Animals, Hardened, Power, ADA, hurricane_shelter.
      Kauaʻi         calls them by hazard eligibility (EVAC_F / EVAC_H / EVAC_T), stores
                     capacity as a string with a trailing newline, and leaves ADA mostly blank.
-     Maui           publishes no machine-readable shelter layer at all.
+     Maui           publishes no machine-readable shelter layer at all, so Maui sites come
+                    from FEMA's National Shelter System and are labelled as registered sites.
 
    This file reads all three live county services, maps them onto one record shape, and —
    just as importantly — keeps track of what each county never told us. A field we were not
@@ -25,6 +26,7 @@ import { rows, yn, num, str } from "./arcq.js";
 const HON = "https://services.arcgis.com/tNJpAOha4mODLkXz/arcgis/rest/services/Potential_Emergency_Shelter_Edit_EOC/FeatureServer/0";
 const HAW = "https://services1.arcgis.com/C2LPusZs5OXNGFDn/arcgis/rest/services/Emergency_Shelters_(HCCDA)_Public/FeatureServer/0";
 const KAU = "https://services1.arcgis.com/0DaVqrPt2eyXUS9g/arcgis/rest/services/Shelters_Testing_Copy/FeatureServer/0";
+const NSS = "https://gis.fema.gov/arcgis/rest/services/NSS/FEMA_NSS/MapServer/5";
 
 /** Normalised roles. Counties use different words for the same two ideas, plus pet-only sites. */
 export const ROLE = {
@@ -123,11 +125,41 @@ export const COUNTIES = [
   },
   {
     fips: "15009", name: "Maui County", short: "Maui", island: "Maui, Molokaʻi, Lānaʻi",
-    agency: "Maui Emergency Management Agency", url: "", term: "—", published: false,
-    // Searched MEMA's 705-service ArcGIS org and ArcGIS Online on 2026-10-29: no public
-    // machine-readable shelter layer. Reported as a gap rather than filled with a guess.
-    gap: "No public machine-readable shelter layer found. Shelter lists are published as web pages and PDFs only, so they cannot be checked against hazard zones automatically.",
-    async load() { return []; },
+    agency: "FEMA National Shelter System (Maui EMA publishes no list of its own)", url: NSS,
+    term: "Registered shelter site (FEMA NSS)", published: true, secondary: true,
+    // Maui County publishes no machine-readable shelter list (searched MEMA's ArcGIS org and
+    // ArcGIS Online, 2026-10-29). FEMA's National Shelter System, kept in step with the Red
+    // Cross shelter database, registers Maui sites with capacity, accessibility, generator and
+    // pet fields. A registration is not a county designation, so these are labelled as such.
+    gap: "Maui County publishes no shelter list of its own. These are sites registered in FEMA's National Shelter System: a registration is not a county designation, and records carry no date.",
+    async load() {
+      // Only facility fields are requested. The service also carries point-of-contact names,
+      // phones and emails; AllReady never asks for them.
+      const fields = "shelter_name,address_1,city,zip,evacuation_capacity,post_impact_capacity,wheelchair_accessible,ada_compliant,pet_accommodations_code,generator_onsite,self_sufficient_electricity,in_100_yr_floodplain,in_surge_slosh_area,shelter_status_code,facility_usage_code,latitude,longitude";
+      const extra = "&geometry=" + encodeURIComponent("-157.35,20.45,-155.95,21.25") + "&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects";
+      const seen = new Set();
+      return (await rows(NSS, { where: "state='HI'", fields, extra })).map((a) => {
+        const u = str(a.facility_usage_code).toUpperCase(), cap = num(a.evacuation_capacity) || num(a.post_impact_capacity);
+        const pet = str(a.pet_accommodations_code).toUpperCase();
+        const surge = yn(a.in_surge_slosh_area), flood = yn(a.in_100_yr_floodplain);
+        return {
+          name: str(a.shelter_name), address: str(a.address_1), city: str(a.city), zip: str(a.zip), phone: "", district: str(a.city),
+          status: /open/i.test(str(a.shelter_status_code)) ? "open" : /clos/i.test(str(a.shelter_status_code)) ? "closed" : "unknown",
+          opened: null, closed: null,
+          capacity: cap > 0 ? cap : null, occupancy: null, available: null,
+          role: u === "POST" ? "post" : u === "EVAC" || u === "BOTH" ? "pre" : "unknown", facility: "",
+          ada: yn(a.wheelchair_accessible) ?? yn(a.ada_compliant), pets: pet ? (pet === "NONE" ? false : true) : null,
+          power: yn(a.generator_onsite) ?? yn(a.self_sufficient_electricity), hardened: null,
+          hazards: { hurricane: surge === true ? false : null, flood: flood === true ? false : null, tsunami: surge === true ? false : null, wildfire: null },
+          link: "", lon: a._lon ?? num(a.longitude), lat: a._lat ?? num(a.latitude),
+        };
+      }).filter((s) => {
+        // The registry repeats some sites; keep the first record per name and place.
+        const k = s.name.toUpperCase() + "|" + (Number.isFinite(s.lat) ? s.lat.toFixed(3) + "," + s.lon.toFixed(3) : s.address.toUpperCase());
+        if (!s.name || seen.has(k)) return false;
+        seen.add(k); return true;
+      });
+    },
   },
 ];
 
@@ -157,7 +189,7 @@ export function readiness(shelters) {
     const pct = mine.length ? Math.round(attrs.reduce((t, a) => t + a.pct, 0) / attrs.length) : 0;
     return {
       fips: c.fips, county: c.short, name: c.name, agency: c.agency, term: c.term,
-      published: c.published, gap: c.gap || "", url: c.url,
+      published: c.published, secondary: !!c.secondary, gap: c.gap || "", url: c.url,
       count: mine.length,
       capacity: mine.reduce((t, s) => t + (s.capacity || 0), 0),
       capacityKnownFor: mine.filter((s) => s.capacity != null).length,

@@ -104,8 +104,14 @@ export function pledgedSupply(fips) {
 }
 
 const COLS = ["partner", "type", "county", "qty", "confirmed", "role", "notes"];
+/** Spreadsheet-safe cell: quoted when needed, and never starting with = + - @ (formula injection). */
+export function csvCell(v) {
+  let t = v == null ? "" : String(v);
+  if (/^[=+\-@\t\r]/.test(t) && !/^-?\d+(\.\d+)?$/.test(t)) t = "'" + t;
+  return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t;
+}
 export function toCSV(list = pledges()) {
-  const esc = (v) => { const t = v == null ? "" : String(v); return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
+  const esc = csvCell;
   return "﻿" + [COLS.join(","), ...list.map((p) => COLS.map((c) => esc(p[c])).join(","))].join("\n") + "\n";
 }
 export function fromCSV(text) {

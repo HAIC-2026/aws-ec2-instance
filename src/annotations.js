@@ -102,7 +102,7 @@ export function createAnnotations({ map, host, font = () => ["Noto Sans Regular"
     const all = draft ? [...items, draft] : items;
     for (const it of all) {
       if (it.kind === "icon" || (it !== draft && !inTime(it))) continue;
-      const props = { id: it.id, color: it.color || "#ffffff", width: it.width || 3, title: it.title || "", sel: it.id === selected ? 1 : 0, arrow: it.kind === "arrow" ? 1 : 0 };
+      const props = { id: it.id, color: it.color || "#ffffff", width: it.width || 3, title: it.title || "", sel: it.id === selected ? 1 : 0, arrow: it.kind === "arrow" ? 1 : 0, fill: it.fill ?? 0.32 };
       if (it.kind === "circle") fs.push({ type: "Feature", properties: { ...props, poly: 1 }, geometry: { type: "Polygon", coordinates: [circlePoly(it.center, it.radiusKm)] } });
       else if (it.kind === "area" && it.coords.length >= 3) fs.push({ type: "Feature", properties: { ...props, poly: 1 }, geometry: { type: "Polygon", coordinates: [[...it.coords, it.coords[0]]] } });
       else if (it.coords?.length >= 2) fs.push({ type: "Feature", properties: props, geometry: { type: "LineString", coordinates: it.coords } });
@@ -118,7 +118,7 @@ export function createAnnotations({ map, host, font = () => ["Noto Sans Regular"
     }
     if (!map.getSource("markup")) map.addSource("markup", { type: "geojson", data: geo() });
     const add = (l) => { if (!map.getLayer(l.id)) map.addLayer(l); };
-    add({ id: "markup-fill", type: "fill", source: "markup", filter: ["==", ["get", "poly"], 1], paint: { "fill-color": ["get", "color"], "fill-opacity": 0.14 } });
+    add({ id: "markup-fill", type: "fill", source: "markup", filter: ["==", ["get", "poly"], 1], paint: { "fill-color": ["get", "color"], "fill-opacity": ["coalesce", ["get", "fill"], 0.32] } });
     add({ id: "markup-line", type: "line", source: "markup", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": ["get", "color"], "line-width": ["+", ["get", "width"], ["*", ["get", "sel"], 1.5]], "line-dasharray": ["case", ["==", ["get", "poly"], 1], ["literal", [2, 1.5]], ["literal", [1, 0]]] } });
     add({ id: "markup-arrow", type: "symbol", source: "markup", filter: ["==", ["get", "arrow"], 1], layout: { "symbol-placement": "line", "symbol-spacing": 70, "icon-image": "mk-arrow", "icon-size": ["interpolate", ["linear"], ["get", "width"], 1, 0.4, 10, 1], "icon-allow-overlap": true }, paint: { "icon-color": ["get", "color"] } });
     // symbol-placement cannot be data-driven, so areas and lines get a label layer each
@@ -223,17 +223,33 @@ export function createAnnotations({ map, host, font = () => ["Noto Sans Regular"
   const pt = (e) => snapTo(e.point) || [e.lngLat.lng, e.lngLat.lat];
 
   /* ---------- drawing ---------- */
-  function finish() {
+  const valid = (d) => d && (d.kind === "circle" || d.coords.length >= (d.kind === "area" ? 3 : 2));
+  /** A freehand stroke that ends where it began is a shape the planner meant to enclose: fill it. */
+  function closeIfLoop(d) {
+    if (d.kind !== "path" || d.coords.length < 4) return d;
+    const a = map.project(d.coords[0]), b = map.project(d.coords[d.coords.length - 1]);
+    const span = d.coords.reduce((m, c) => { const p = map.project(c); return Math.max(m, Math.hypot(p.x - a.x, p.y - a.y)); }, 0);
+    return Math.hypot(a.x - b.x, a.y - b.y) <= Math.max(28, span * 0.18) ? { ...d, kind: "area", color: d.color === "#4d9fff" ? "#f0c24a" : d.color } : d;
+  }
+  function finish(next = "select") {
     if (!draft) return;
-    const ok = draft.kind === "circle" || draft.coords.length >= (draft.kind === "area" ? 3 : 2);
-    if (ok) { items.push(draft); selected = draft.id; }
-    draft = null; setTool("select"); save(); refresh();
+    const d = closeIfLoop(draft);
+    if (valid(d)) { items.push(d); selected = d.id; }
+    draft = null; setTool(next); save(); refresh();
   }
   function setTool(t) {
-    tool = t; armedIcon = null; draft = draft && t !== "select" ? draft : null;
+    // Switching tools, or clicking Select, keeps a shape that is already drawable instead of
+    // throwing it away: losing a half-drawn area to a stray click was the most common complaint.
+    if (draft && t !== tool && draft.kind !== "path") {
+      const d = draft; draft = null;
+      if (valid(d)) { items.push(d); selected = d.id; save(); }
+    }
+    tool = t; armedIcon = null;
     map.getCanvas().style.cursor = t === "select" ? "" : "crosshair";
     if (t !== "path") map.dragPan.enable();
-    renderPanel();
+    // Double-click finishes a line or area; it must not also zoom the map.
+    if (["area", "line", "arrow"].includes(t)) map.doubleClickZoom.disable(); else map.doubleClickZoom.enable();
+    refresh();
   }
   /** planner.js calls this first on every map click; true means "handled, do not inspect". */
   function consume(e) {
@@ -251,11 +267,23 @@ export function createAnnotations({ map, host, font = () => ["Noto Sans Regular"
       finish(); return true;
     }
     if (tool === "path") return true; // handled by the drag listeners
-    if (!draft) draft = { id: uid(), kind: tool, coords: [], color: tool === "area" ? "#f0c24a" : "#ffffff", width: 3, title: "" };
-    draft.coords.push(pt(e)); redraw();
+    if (!draft) draft = { id: uid(), kind: tool, coords: [], color: tool === "area" ? "#f0c24a" : "#ffffff", width: 3, title: "", status: "plan" };
+    // Clicking back on the first corner closes an area, as in any GIS editor.
+    if (tool === "area" && draft.coords.length >= 3) {
+      const a = map.project(draft.coords[0]);
+      if (Math.hypot(a.x - e.point.x, a.y - e.point.y) < 12) { finish(); return true; }
+    }
+    draft.coords.push(pt(e)); redraw(); renderPanel();
     return true;
   }
-  map.on("dblclick", (e) => { if (draft && tool !== "path") { e.preventDefault(); draft.coords.pop(); finish(); } });
+  map.on("dblclick", (e) => {
+    if (!draft || tool === "path") return;
+    e.preventDefault();
+    // the two clicks of a double-click each added a corner at the same place; keep one
+    const c = draft.coords, n = c.length;
+    if (n >= 2 && Math.abs(c[n - 1][0] - c[n - 2][0]) < 1e-7 && Math.abs(c[n - 1][1] - c[n - 2][1]) < 1e-7) c.pop();
+    finish();
+  });
   addEventListener("keydown", (e) => {
     if (e.key === "Enter" && draft) finish();
     else if (e.key === "Escape" && (draft || tool !== "select" || armedIcon)) { draft = null; setTool("select"); redraw(); }
@@ -263,13 +291,14 @@ export function createAnnotations({ map, host, font = () => ["Noto Sans Regular"
   });
   // freehand
   let drawing = false;
-  const down = (e) => { if (tool !== "path") return; e.preventDefault(); map.dragPan.disable(); drawing = true; draft = { id: uid(), kind: "path", coords: [pt(e)], color: "#4d9fff", width: 3, title: "" }; };
+  const down = (e) => { if (tool !== "path") return; e.preventDefault(); map.dragPan.disable(); drawing = true; draft = { id: uid(), kind: "path", coords: [pt(e)], color: "#4d9fff", width: 3, title: "", status: "plan" }; };
   const move = (e) => {
     if (!drawing || !draft) return;
     const p = pt(e), l = draft.coords[draft.coords.length - 1], a = map.project(l), b = map.project(p);
     if (Math.hypot(a.x - b.x, a.y - b.y) > 5) { draft.coords.push(p); redraw(); }
   };
-  const up = () => { if (!drawing) return; drawing = false; map.dragPan.enable(); finish(); };
+  // Stay in Draw after a stroke so a planner can sketch several shapes in a row.
+  const up = () => { if (!drawing) return; drawing = false; map.dragPan.enable(); finish("path"); };
   map.on("mousedown", down); map.on("mousemove", move); map.on("mouseup", up);
   map.on("touchstart", down); map.on("touchmove", move); map.on("touchend", up);
 
@@ -319,8 +348,15 @@ export function createAnnotations({ map, host, font = () => ["Noto Sans Regular"
     tools.append(tb("select", "Select", "M5 3l14 8-6 2-2 6Z"), ...SHAPES.map(([k, n, d]) => tb(k, n, d)));
     host.append(tools);
 
-    const hint = { select: "Click a shape or icon to edit it. Drag icons anywhere; drop one on a shape and it snaps on and travels with it.", circle: "Click the map to drop a radius. Drag the edge handle to size it.", line: "Click each point. Double-click or press Enter to finish.", arrow: "Click each point in the direction of travel. Double-click or Enter to finish.", path: "Press and drag to draw.", area: "Click each corner. Double-click or Enter to close it." }[tool];
+    const hint = { select: "Click a shape or icon to edit it. Drag icons anywhere; drop one on a shape and it snaps on and travels with it.", circle: "Click the map to drop a radius. Drag the edge handle to size it.", line: "Click each point. Double-click or press Enter to finish.", arrow: "Click each point in the direction of travel. Double-click or Enter to finish.", path: "Press and drag to draw. End where you started and the shape fills in.", area: "Click each corner. Click the first corner, double-click or press Enter to close it." }[tool];
     host.append(el("p", "src mk-hint", armedIcon ? `Click the map to place “${ICONS[armedIcon].n}”. Esc cancels.` : hint));
+    if (draft && draft.kind !== "path") {
+      const bar = el("div", "mk-row");
+      const done = el("button", "btn", valid(draft) ? "Finish shape" : `Add ${(draft.kind === "area" ? 3 : 2) - draft.coords.length} more point(s)`); done.type = "button"; done.disabled = !valid(draft); done.onclick = () => finish();
+      const undo = el("button", "btn ghost", "Undo point"); undo.type = "button"; undo.disabled = !draft.coords.length; undo.onclick = () => { draft.coords.pop(); redraw(); renderPanel(); };
+      const cancel = el("button", "btn ghost", "Cancel"); cancel.type = "button"; cancel.onclick = () => { draft = null; tool = "select"; setTool("select"); };
+      bar.append(done, undo, cancel); host.append(bar);
+    }
 
     const sn = el("label", "mk-snap");
     const cb = el("input"); cb.type = "checkbox"; cb.checked = snap; cb.onchange = () => { snap = cb.checked; };
@@ -351,9 +387,20 @@ export function createAnnotations({ map, host, font = () => ["Noto Sans Regular"
       ed.append(el("h4", "mk-h", it.kind === "icon" ? ICONS[it.icon]?.n || "Icon" : SHAPES.find((s) => s[0] === it.kind)?.[1] || "Shape"));
       const title = input("text", it.title, set((v) => (it.title = v)), { placeholder: "Title, e.g. Tsunami — north shore", "data-mk": "title" });
       ed.append(field("Title", title));
+      // Planning note (what-if) or field report (what staff are seeing now). A field report is
+      // live information from a person, not an official alert, and is labelled that way.
+      const st = el("div", "mk-seg");
+      for (const [k, n] of [["plan", "Planning note"], ["reported", "Field report (now)"]]) {
+        const b = el("button", null, n); b.type = "button"; b.setAttribute("aria-pressed", String((it.status || "plan") === k));
+        b.onclick = () => { it.status = k; if (k === "reported") it.reportedAt = new Date().toISOString(); else delete it.reportedAt; save(); refresh(); };
+        st.append(b);
+      }
+      ed.append(field("Status", st));
+      if (it.status === "reported" && it.reportedAt) ed.append(el("p", "src", `Reported ${new Date(it.reportedAt).toLocaleString("en-US", { timeZone: "Pacific/Honolulu", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} HST by this planner. Shared with the assistant as a staff report, not an official alert.`));
       if (it.kind === "circle") ed.append(field("Radius (km)", input("number", it.radiusKm, set((v) => { it.radiusKm = Math.max(0.05, +v || 0.05); drawHandles(); }), { min: "0.05", step: "0.1", "data-mk": "r" })));
       else if (it.kind === "icon") ed.append(field("Size", input("range", it.size || 1, set((v) => (it.size = +v)), { min: "0.6", max: "2.4", step: "0.1" })));
       else ed.append(field("Line weight", input("range", it.width || 3, set((v) => (it.width = +v)), { min: "1", max: "10", step: "0.5" })));
+      if (it.kind === "area" || it.kind === "circle") ed.append(field("Fill", input("range", it.fill ?? 0.32, set((v) => (it.fill = +v)), { min: "0", max: "0.8", step: "0.04" })));
       const sw = el("div", "mk-sw");
       COLORS.forEach((c) => { const b = el("button"); b.type = "button"; b.style.background = c; b.setAttribute("aria-label", "Colour " + c); b.setAttribute("aria-pressed", (it.color || "#ffffff") === c); b.onclick = () => { it.color = c; save(); refresh(); }; sw.append(b); });
       ed.append(field("Colour", sw));
@@ -411,6 +458,6 @@ export function createAnnotations({ map, host, font = () => ["Noto Sans Regular"
     get selected() { return selected; },
     /* What the AI assistant is allowed to see: geometry, titles, notes and timing.
        Points of contact are deliberately left out — they never leave this browser. */
-    snapshot: () => items.map(({ contact, ...x }) => ({ ...x, visible: inTime(x) })),
+    snapshot: () => items.map(({ contact, ...x }) => ({ ...x, status: x.status === "reported" ? "field report from planning staff (live, unverified)" : "planning note (hypothetical)", visible: inTime(x) })),
   };
 }

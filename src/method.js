@@ -26,7 +26,7 @@ function h(tag, attrs = {}, ...kids) {
 const fmt = (n) => (n == null ? "–" : Math.round(n).toLocaleString("en-US"));
 const pc = (x, d = 1) => (x * 100).toFixed(d) + "%";
 
-mountTopBar($("top"), "method", "Data & method");
+mountTopBar($("top"), "method", "ESF-6 planning");
 
 /* ---------------- sources, with a live check ---------------- */
 const SVI = "https://onemap.cdc.gov/onemapservices/rest/services/SVI/CDC_ATSDR_Social_Vulnerability_Index_2022_USA/FeatureServer/2";
@@ -37,7 +37,8 @@ const SRC = [
   { n: "Honolulu Dept. of Emergency Management — shelters", owner: "City and County of Honolulu", use: "Shelter sites and open/closed status, Oʻahu", lvl: 3, fresh: "Live; re-read every 5 min", url: shel("15003").url, probe: count(shel("15003").url), note: "No capacity, ADA, power, pet or hardening fields" },
   { n: "Hawaiʻi County Civil Defense — emergency shelters", owner: "County of Hawaiʻi", use: "Sites, capacity, ADA, animals, power, hardening", lvl: 3, fresh: "Live; re-read every 5 min", url: shel("15001").url, probe: count(shel("15001").url), note: "Richest AFN schema in the state" },
   { n: "Kauaʻi Emergency Management Agency — shelters", owner: "County of Kauaʻi", use: "Sites, capacity, hazard eligibility", lvl: 3, fresh: "Live; re-read every 5 min", url: shel("15007").url, probe: count(shel("15007").url), note: "ADA mostly blank" },
-  { n: "Maui County shelter list", owner: "Maui Emergency Management Agency", use: "Would supply Maui shelter sites", lvl: 1, fresh: "Web pages and PDFs when shelters open", url: "https://www.mauicounty.gov/2300/Emergency-Management-Agency", probe: null, note: "No machine-readable layer found — reported as a gap" },
+  { n: "FEMA National Shelter System — Maui County sites", owner: "FEMA Mass Care, synchronised with the American Red Cross", use: "Maui shelter sites, registered capacity, accessibility, generators, pets", lvl: 3, fresh: "Live; re-read with the county feeds", url: "https://gis.fema.gov/arcgis/rest/services/NSS/FEMA_NSS/MapServer/5", probe: count("https://gis.fema.gov/arcgis/rest/services/NSS/FEMA_NSS/MapServer/5", "state='HI'"), note: "Used for Maui only, where the County publishes no list; a registration is not a county designation. Contact fields are never requested." },
+  { n: "Maui County's own shelter list", owner: "Maui Emergency Management Agency", use: "Would be the authoritative Maui list", lvl: 1, fresh: "Announced per event on web pages", url: "https://www.mauicounty.gov/2300/Emergency-Management-Agency", probe: null, note: "Not published as data" },
   { n: "National Weather Service — active alerts", owner: "NOAA / NWS Honolulu", use: "The live event and its polygons", lvl: 3, fresh: "Live; re-read every 5 min", url: "https://api.weather.gov/alerts/active?area=HI", probe: "https://api.weather.gov/alerts/active/count", note: "" },
   { n: "CDC/ATSDR Social Vulnerability Index 2022", owner: "CDC / ATSDR (ACS 2018–2022)", use: "Residents, disability, limited English, no vehicle, age, by tract", lvl: 3, fresh: "Latest federal release; re-read every 30 min", url: "https://www.atsdr.cdc.gov/place-health/php/svi/index.html", probe: count(SVI, "ST_ABBR='HI'"), note: "Survey estimates with margins of error" },
   { n: "HHS emPOWER — public REST service", owner: "HHS ASPR / CMS", use: "Electricity-dependent Medicare beneficiaries, dialysis, oxygen", lvl: 3, fresh: "Monthly HHS release; re-read every 30 min", url: "https://empowerprogram.hhs.gov/empowermap", probe: count("https://services2.arcgis.com/ZQ4jTQn6k7VPXEwO/arcgis/rest/services/HHS_emPOWER_REST_Service_Public/FeatureServer/2", "State_FIPS_Code='15'"), note: "Medicare only, so a floor; small counts suppressed by HHS" },
@@ -66,28 +67,27 @@ async function probe(u) {
   }
 }
 
+const HOW = ["Ask the owner", "Web page or PDF", "Downloadable file", "Live query service"];
 async function renderSources() {
   const cells = new Map();
   const t = h("table", { class: "s-t" },
-    h("thead", {}, h("tr", {}, ["Level", "Source", "Used for", "Freshness", "Live check", "Limits"].map((c) => h("th", {}, c)))),
+    h("thead", {}, h("tr", {}, ["Source", "Used for", "How it is read", "Refresh", "Status", "Notes"].map((c) => h("th", {}, c)))),
     h("tbody", {}, SRC.map((s) => {
-      const st = h("td", {}, s.probe ? h("span", { class: "tag" }, "checking…") : h("span", { class: "tag" }, s.lvl === 0 ? "no public source" : "not machine-readable"));
+      const st = h("td", {}, s.probe ? h("span", { class: "tag" }, "Checking…") : h("span", { class: "tag" }, "Not queryable"));
       cells.set(s, st);
       return h("tr", {},
-        h("td", {}, h("span", { class: "lvl", "data-l": s.lvl, title: ["Phone call", "Published on a schedule", "File at a stable address", "Service that answers by area"][s.lvl] }, s.lvl)),
-        h("td", {}, h("a", { href: s.url, target: s.url.startsWith("http") ? "_blank" : null, rel: "noopener noreferrer" }, h("b", {}, s.n)), h("div", { class: "s-muted", style: "font-size:12px" }, s.owner)),
-        h("td", {}, s.use), h("td", {}, s.fresh), st, h("td", { class: "s-muted", style: "font-size:12.5px" }, s.note || "—"));
+        h("td", {}, h("a", { href: s.url, target: s.url.startsWith("http") ? "_blank" : null, rel: "noopener noreferrer" }, h("b", {}, s.n)), h("span", { class: "sub" }, s.owner)),
+        h("td", {}, s.use), h("td", {}, h("span", { class: s.lvl === 3 ? "tag info" : "tag" }, HOW[s.lvl])), h("td", {}, s.fresh), st, h("td", { class: "s-muted", style: "font-size:12.5px" }, s.note || "—"));
     })));
-  $("sources").replaceChildren(h("div", { class: "s-tw" }, t),
-    h("p", { class: "s-src" }, "Every source is public and needs no key. Nothing here holds a record about a person; emPOWER and the census are aggregated by their publishers before AllReady reads them."));
+  $("sources").replaceChildren(t);
   const res = await Promise.all(SRC.map(async (s) => {
     if (!s.probe) return null;
     const r = await probe(s.probe);
-    cells.get(s).replaceChildren(h("span", { class: r.ok ? "tag ok" : "tag bad" }, r.ok ? "live" : "down"), h("div", { class: "s-src", style: "margin:4px 0 0" }, `${r.msg}${r.ms != null ? " · " + r.ms + " ms" : ""}`));
+    cells.get(s).replaceChildren(h("span", { class: r.ok ? "tag ok" : "tag bad" }, r.ok ? "Answering" : "Not answering"), h("span", { class: "sub", style: "margin-top:4px" }, `${r.msg}${r.ms != null ? " · " + r.ms + " ms" : ""}`));
     return r.ok;
   }));
   const tested = res.filter((x) => x !== null), up = tested.filter(Boolean).length;
-  $("ribbon").replaceChildren(h("span", {}, h("span", { class: "dot", "data-s": up === tested.length ? "on" : "warn" }), h("b", {}, `${up} of ${tested.length} sources answering`), ` · checked ${new Date().toLocaleTimeString("en-US", { timeZone: "Pacific/Honolulu", hour: "numeric", minute: "2-digit" })} HST from this browser`));
+  $("ribbon").replaceChildren(h("span", {}, h("span", { class: "dot", "data-s": up === tested.length ? "on" : "warn" }), h("b", {}, `${up} of ${tested.length} live sources answering`), ` · checked ${new Date().toLocaleTimeString("en-US", { timeZone: "Pacific/Honolulu", hour: "numeric", minute: "2-digit" })} HST from this browser · every source is public and needs no key`));
 }
 $("recheck").onclick = renderSources;
 renderSources();
@@ -98,14 +98,13 @@ renderSources();
   const E = exp.status === "fulfilled" ? exp.value : null;
   const tracts = svi.status === "fulfilled" ? rankTracts(svi.value) : [];
   const n = E ? Object.keys(E.tracts).length : 0;
-  const k = (l, v, s, c) => h("div", { class: "kpi", style: c ? `--k:${c}` : null }, h("div", { class: "k-l" }, l), h("div", { class: "k-v" }, v), h("div", { class: "k-s" }, s));
+  const k = (l, v, sub) => h("div", {}, h("div", { class: "l" }, l), h("div", { class: "v" }, v), h("div", { class: "s" }, sub));
   $("goals").replaceChildren(
-    k("Goal 1 · tracts mapped per hazard", E ? `${n} / ${n}` : "–", "every 2020 Census tract with residents, all four hazards", "var(--s-brand)"),
-    k("Goal 1 · hazards", "4 / 4", "hurricane, wildfire, tsunami, flood", "var(--h-hurricane)"),
-    k("Goal 1 · counties", "4 / 4", "population; shelter feeds 3 of 4 (Maui has none)", "var(--h-flood)"),
-    k("Goal 2 · CMIST areas with a source", "5 / 5", "SVI for C, I, S, T · emPOWER for M", "var(--c-C)"),
-    k("Goal 2 · past counts checked", "5", "Hurricane Lane 2018 (4 counties), Maui wildfires 2023", "var(--h-wildfire)"),
-    k("Goal 3 · time to a plan", "≈ minutes", "baseline 3 business days (proposed); timed on the map", "var(--c-T)"));
+    k("Census tracts mapped", E ? `${n} of ${n}` : "–", "every populated 2020 tract, all four hazards"),
+    k("Hazards", "4 of 4", "hurricane, wildfire, tsunami, flood"),
+    k("Counties with shelter data", "4 of 4", "3 county services; Maui from FEMA's registry"),
+    k("CMIST areas with a source", "5 of 5", "SVI for C, I, S, T; emPOWER for M"),
+    k("Past shelter counts checked", "5", "Hurricane Lane 2018; Maui wildfires 2023"));
 
   if (E) {
     const rows = COUNTY_LIST.map((c) => {
@@ -117,8 +116,8 @@ renderSources();
     const t = h("table", { class: "s-t" },
       h("thead", {}, h("tr", {}, ["County", "Tracts", "Residents (2020)", "Hurricane", "Tsunami zone", "High fire-risk area", "FEMA flood zone"].map((x, i) => h("th", { class: i ? "r" : null }, x)))),
       h("tbody", {}, rows.map((r) => h("tr", {}, h("td", {}, h("b", {}, r.c.long)), h("td", { class: "num" }, r.n), h("td", { class: "num" }, fmt(r.pop)), cell(r.pop, r.pop), cell(r.tsunami, r.pop), cell(r.wildfire, r.pop), cell(r.flood, r.pop)))));
-    $("coverage").replaceChildren(h("div", { class: "s-tw" }, t),
-      h("p", { class: "s-src" }, `Method: ${E.method} Processed ${new Date(E.generated).toLocaleDateString("en-US", { dateStyle: "medium" })} from ${E.sources.map((s) => `${s.n} (${fmt(s.count)} features)`).join("; ")}. Kalawao County (82 residents) is included in state totals. Statewide: ${fmt(E.totals.pop20)} residents, matching the 2020 Census count.`));
+    $("coverage").replaceChildren(t);
+    $("covSrc").textContent = (`Method: ${E.method} Processed ${new Date(E.generated).toLocaleDateString("en-US", { dateStyle: "medium" })} from ${E.sources.map((s) => `${s.n} (${fmt(s.count)} features)`).join("; ")}. Kalawao County (82 residents) is included in state totals. Statewide: ${fmt(E.totals.pop20)} residents, matching the 2020 Census count.`);
   }
 
   if (tracts.length) {
@@ -131,8 +130,8 @@ renderSources();
         h("td", { class: "num" }, `${rate(r.observed)} / ${rate(r.assumed)}`),
         h("td", {}, h("span", { class: r.inside ? "tag ok" : "tag warn" }, r.verdict), r.context ? h("div", { class: "s-muted", style: "font-size:12px" }, r.context) : null),
         h("td", {}, h("a", { href: r.url, target: "_blank", rel: "noopener noreferrer", title: r.quote }, "Open ↗"))))));
-    $("backtest").replaceChildren(h("p", { class: "s-card flat s-note", style: "margin:0 0 12px" }, reading(rows)), h("div", { class: "s-tw" }, t),
-      h("p", { class: "s-src" }, "The near-miss intensity on Scenarios uses the highest observed turnout per hazard from this table."));
+    $("backtest").replaceChildren(h("div", { class: "panel-b s-note", style: "border-bottom:1px solid var(--s-line2)" }, reading(rows)), h("div", { class: "s-tw" }, t),
+      h("p", { class: "s-src" }, "The Near miss intensity in the Event planner uses the highest turnout observed per hazard in this table."));
   }
 })();
 
@@ -147,29 +146,6 @@ renderSources();
   rows.push(["Shelter demand range", { v: `${SHELTER_RANGE.low}× – ${SHELTER_RANGE.high}×`, u: "of the likely figure", src: SHELTER_RANGE.src, std: false, note: "Shelter turnout is the least certain number in mass-care planning." }]);
   const t = h("table", { class: "s-t" },
     h("thead", {}, h("tr", {}, ["Factor", "Value", "Source", "Type", "Note"].map((x, i) => h("th", { class: i === 1 ? "r" : null }, x)))),
-    h("tbody", {}, rows.map(([n, f]) => h("tr", {}, h("td", {}, h("b", {}, n)), h("td", { class: "num" }, typeof f.v === "number" && f.v < 1 && f.v > 0 ? pc(f.v, 0) : f.v, h("div", { class: "s-muted", style: "font-size:11px" }, f.u)), h("td", {}, f.src), h("td", {}, h("span", { class: f.std ? "tag ok" : "tag hyp" }, f.std ? "published" : "assumption")), h("td", { class: "s-muted", style: "font-size:12.5px" }, f.note || "—")))));
-  $("factors").replaceChildren(h("div", { class: "s-tw" }, t));
+    h("tbody", {}, rows.map(([n, f]) => h("tr", {}, h("td", {}, h("b", {}, n)), h("td", { class: "num" }, typeof f.v === "number" && f.v < 1 && f.v > 0 ? pc(f.v, 0) : f.v, h("div", { class: "s-muted", style: "font-size:11px" }, f.u)), h("td", {}, f.src), h("td", {}, h("span", { class: f.std ? "tag ok" : "tag hyp" }, f.std ? "Published" : "Assumption")), h("td", { class: "s-muted", style: "font-size:12.5px" }, f.note || "—")))));
+  $("factors").replaceChildren(t);
 }
-
-/* ---------------- questions and limits ---------------- */
-$("questions").replaceChildren(...[
-  ["Goal 3 baseline", "How long does it take today to put together a needs-and-resources plan for one county and one hazard? Would one county run a timed tabletop, the same scenario once the current way and once with AllReady, so the time saved is measured rather than proposed?"],
-  ["Goal 2 margin", "Is “the published shelter count falls inside the model's range, for events that made direct impact; near misses reported but not scored” an acceptable margin? Which past events should count, and can DHS or the counties share after-action shelter counts (for example the July 2025 tsunami warning)?"],
-  ["Shelter records", "Would each county add capacity, ADA access, backup power, animal policy and wind-hardening to the shelter layer it already publishes? Honolulu's public layer has none of these fields, and Maui County publishes no machine-readable list."],
-  ["Hawaiʻi rates", "Does DHS or HI-EMA hold Hawaiʻi survey or after-action rates for evacuation and public-shelter use by hazard that should replace the assumption factors?"],
-  ["Partners", "Which partners (Red Cross, Salvation Army, VOAD, utilities' medical-needs programs, health plans) would share capacity or counts per area — never records — and under what agreement? Who should own keeping those figures current?"],
-  ["Hosting and AI", "If the State adopts this, which ETS-approved hosting, which identity provider for sign-in, and which AI model approved for in-boundary use? AllReady runs a local model by default so no prompt leaves the machine."],
-  ["Language access", "Which languages and formats do counties already have approved message templates for, and who reviews translations before they are used?"],
-  ["Scope", "The brief names earthquake once alongside the four core hazards. Should earthquake be added as a fifth scenario?"],
-].map(([b, q]) => h("li", {}, h("b", {}, b + ". "), q)));
-
-$("limits").replaceChildren(...[
-  "A planning aid. It issues no alerts and replaces no county or State emergency operations plan.",
-  "Residents with access and functional needs are assumed to be spread like everyone else within a tract.",
-  "A census block counts wholly inside or outside a zone according to its internal point.",
-  "Hurricane counts every resident; storm surge and rainfall flooding are not modelled separately.",
-  "emPOWER counts Medicare beneficiaries only, so medical figures are a floor.",
-  "Shelter-seeking rates are the least certain numbers here; the check against past events shows how far off they can be.",
-  "A shelter on record is not an open shelter; only sites whose county feed says open are counted as open.",
-  "Interface translations are drafts that need native-speaker review.",
-].map((x) => h("li", {}, x)));

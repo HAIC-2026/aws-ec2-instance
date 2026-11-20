@@ -20,11 +20,11 @@ Information about people with access and functional needs (AFN), hazard exposure
 
 | DHS goal | How AllReady measures it | Status |
 |---|---|---|
-| Hazard-specific AFN maps, four hazards, every county, 100% of tracts (432 of 432 populated 2020 tracts; residents inside each hazard's published zone from 2020 Census blocks, shown on Scenarios and Data & method) | Tracts scored ÷ Hawaiʻi tracts returned by SVI; hazards modelled; counties covered | All populated tracts scored (unpopulated tracts excluded and counted); 4 of 4 hazards; 4 of 4 counties for population |
+| Hazard-specific AFN maps, four hazards, every county, 100% of tracts (432 of 432 populated 2020 tracts; residents inside each hazard's published zone from 2020 Census blocks, shown in the Event planner and Data health) | Tracts scored ÷ Hawaiʻi tracts returned by SVI; hazards modelled; counties covered | All populated tracts scored (unpopulated tracts excluded and counted); 4 of 4 hazards; 4 of 4 counties for population |
 | Needs estimates across all five CMIST categories, validated as reasonable within an agreed margin against past events | One row per category naming its live source, plus the past-events check below | 5 of 5 computed. Checked against five published shelter counts; **the margin is for DHS and the counties to agree** |
 | Reduce time to a coordinated needs-and-resources plan | Stopwatch from opening the tool to exporting the plan | Baseline proposed: 3 business days (~24 staff-hours), derived from the manual steps DHS describes. Target: under 15 minutes. Baseline needs DHS confirmation |
 
-Shelter supply covers 3 of 4 counties: Maui County publishes no machine-readable shelter layer. That is itself a finding.
+Shelter supply covers 4 of 4 counties: three county services, and for Maui, which publishes no list of its own, FEMA's National Shelter System (registered sites, labelled as not county-designated). That Maui's only machine-readable list is federal is itself a finding.
 
 ### Goal 2: checked against past events
 

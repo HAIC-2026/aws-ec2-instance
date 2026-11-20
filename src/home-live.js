@@ -36,7 +36,7 @@ export async function loadHomeFigures() {
     else {
       set("shel", fmt(S.length)); set("open", fmt(S.filter((x) => x.status === "open").length));
       set("cap", S.some((x) => x.capacity != null) ? fmt(S.reduce((a, x) => a + (x.capacity || 0), 0)) : S.length ? "not published" : "—");
-      if (!S.length && T?.length && ["maui", "molokai", "lanai"].includes(sec.dataset.island)) set("note", "Maui County publishes no machine-readable shelter feed, so no shelters can be shown here.");
+      if (!S.length && T?.length && ["maui", "molokai", "lanai"].includes(sec.dataset.island)) set("note", "No shelter sites could be read for this island right now.");
     }
   }
 

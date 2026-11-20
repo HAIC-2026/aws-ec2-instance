@@ -3,65 +3,75 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="AllReady partners and roles: who leads and supports each mass-care function for access and functional needs in Hawaiʻi, how residents are told, and a register of partner capacity.">
-<title>AllReady · Partners & roles</title>
+<meta name="description" content="AllReady coordination: who leads and supports each mass-care function for access and functional needs in Hawaiʻi, how warnings reach residents, and partner commitments measured against need.">
+<title>AllReady · Coordination</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="site">
 <a class="skip" href="#main">Skip to the content</a>
 <div id="top"></div>
-<div class="s-ribbon"><div><span><b>Counties lead mass care. The State supports.</b> Every assignment below is a proposal to confirm with the county.</span></div></div>
-<main id="main" class="s-main">
-  <section class="s-hero">
+<section class="s-head">
+  <div class="s-head-in">
     <div>
-      <p class="s-eyebrow">Match · part 3 of the framework</p>
-      <h1>Connect each need to the people who meet it.</h1>
-      <p>Who leads, who supports, what triggers action and how residents are told, for every mass-care function. Then record what partners have actually pledged, so the scenario planner can count it against the gaps.</p>
+      <div class="s-crumb"><a href="home.html">AllReady</a> / Coordination</div>
+      <h1>Coordination</h1>
+      <p>Who leads and supports each mass-care function, how a warning reaches a resident in their language, and what partners have committed against the need in each county. Counties lead; the State supports. Assignments are proposals to confirm with each county.</p>
     </div>
-    <div class="s-steps">
-      <div class="s-step"><i>Roles</i><b>Who acts</b>Lead, support and State role per function.</div>
-      <div class="s-step"><i>Paths</i><b>Who tells whom</b>From the forecast to a resident, in their language.</div>
-      <div class="s-step"><i>Pledges</i><b>Partner capacity</b>Organisation-level, dated, exportable.</div>
-    </div>
-  </section>
+  </div>
+</section>
 
-  <section class="s-sec" aria-labelledby="rT">
-    <div class="s-sec-h"><div><h2 id="rT">Who acts</h2><p>One row per mass-care function. Lead and support follow the county-led, State-supported model in the brief. Confirm each with the county before use.</p></div></div>
-    <div id="roles"></div>
-  </section>
-
-  <section class="s-sec" aria-labelledby="pT">
-    <div class="s-sec-h"><div><h2 id="pT">Communication pathways</h2><p>How a forecast becomes a protective action a resident can understand. The last step matters most: trusted messengers, in the resident's language and format.</p></div></div>
-    <div id="paths" class="s-grid g5"></div>
-    <div class="s-card flat" style="margin-top:14px"><h3 style="font-size:15px">Languages and formats to plan for</h3><div id="langs" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px"></div><p class="s-src" id="langNote"></p></div>
-  </section>
-
-  <section class="s-sec" aria-labelledby="gT">
-    <div class="s-sec-h">
-      <div><h2 id="gT">Partner capacity register</h2><p>Record what a partner has confirmed they can provide. Organisations and roles only — never a resident, a name or a personal phone number. Stored in this browser; export it as CSV to share with ESF-6 partners.</p></div>
-      <div class="no-print" style="display:flex;gap:8px;flex-wrap:wrap"><button id="exp" class="s-btn sm" type="button">Export CSV</button><label class="s-btn sm" for="imp">Import CSV</label><input id="imp" type="file" accept=".csv,text/csv" hidden></div>
-    </div>
-    <div class="s-split">
-      <form id="form" class="s-card s-stack no-print" autocomplete="off" aria-label="Add a pledge">
-        <h3 style="font-size:15px">Add a pledge</h3>
-        <label class="s-field">Organisation<input name="partner" required maxlength="80" placeholder="e.g. a Red Cross chapter or a church network"></label>
-        <label class="s-field">Resource<select name="type" id="ptype"></select></label>
-        <label class="s-field">County<select name="county" id="pcounty"></select></label>
-        <label class="s-field">Quantity<input name="qty" type="number" min="1" step="1" required></label>
-        <label class="s-field">Last confirmed<input name="confirmed" type="date" required></label>
-        <label class="s-field">Point of contact role<input name="role" maxlength="60" placeholder="e.g. Disaster program manager"></label>
-        <label class="s-field">Notes<input name="notes" maxlength="140" placeholder="e.g. needs 24 h notice"></label>
-        <p id="formMsg" class="s-src" role="status"></p>
-        <button class="s-btn pri" type="submit">Add pledge</button>
-      </form>
-      <div class="s-stack">
-        <div id="summary"></div>
-        <div id="list"></div>
+<main id="main" class="s-main">
+  <div class="s-col">
+    <section class="panel" aria-labelledby="cvT">
+      <div class="panel-h">
+        <div><h2 id="cvT">Commitments against need</h2><p>Partner commitments recorded below, measured against the planning-standard need for the county and hazard you choose.</p></div>
+        <div class="no-print" style="display:flex;gap:10px;flex-wrap:wrap">
+          <label class="s-tf">County<select id="cvCounty" class="s-sel"></select></label>
+          <label class="s-tf">Hazard<select id="cvHazard" class="s-sel"></select></label>
+        </div>
       </div>
+      <div class="panel-b flush s-tw" id="coverage"><p class="s-empty" style="margin:16px">Reading census tracts and hazard zones…</p></div>
+    </section>
+
+    <div class="s-layout">
+      <section class="panel" aria-labelledby="gT">
+        <div class="panel-h">
+          <div><h2 id="gT">Partner commitments</h2><p>Organisation-level only: no residents, names or personal phone numbers. Stored in this browser and shared as CSV.</p></div>
+          <div class="no-print" style="display:flex;gap:8px"><button id="exp" class="s-btn sm" type="button">Export CSV</button><label class="s-btn sm" for="imp">Import CSV</label><input id="imp" type="file" accept=".csv,text/csv" hidden></div>
+        </div>
+        <div class="panel-b flush s-tw" id="list"></div>
+      </section>
+      <aside class="s-side no-print" style="top:72px">
+        <form id="form" class="panel" autocomplete="off" aria-labelledby="fT">
+          <div class="panel-h"><h2 id="fT">Record a commitment</h2></div>
+          <div class="panel-b s-stack">
+            <label class="s-field">Organisation<input name="partner" required maxlength="80"></label>
+            <label class="s-field">Resource<select name="type" id="ptype"></select></label>
+            <label class="s-field">County<select name="county" id="pcounty"></select></label>
+            <label class="s-field">Quantity<input name="qty" type="number" min="1" step="1" required></label>
+            <label class="s-field">Confirmed on<input name="confirmed" type="date" required></label>
+            <label class="s-field">Contact role<input name="role" maxlength="60" placeholder="e.g. Disaster program manager"></label>
+            <label class="s-field">Conditions<input name="notes" maxlength="140" placeholder="e.g. 24 hours' notice"></label>
+            <p id="formMsg" class="s-src" role="status" style="margin:0"></p>
+            <button class="s-btn pri" type="submit">Add commitment</button>
+          </div>
+        </form>
+      </aside>
     </div>
-  </section>
+
+    <section class="panel" aria-labelledby="rT">
+      <div class="panel-h"><div><h2 id="rT">Roles by function</h2><p>Lead and support follow the county-led, State-supported model in the DHS brief.</p></div></div>
+      <div class="panel-b flush s-tw" id="roles"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="pT">
+      <div class="panel-h"><div><h2 id="pT">How a warning reaches a resident</h2><p>The last step decides whether people with access and functional needs act: trusted messengers, in their language and format.</p></div></div>
+      <div id="paths" class="flow"></div>
+      <div class="panel-b" style="border-top:1px solid var(--s-line2)"><div class="s-field" style="margin-bottom:8px">Languages and formats to plan for</div><div id="langs" style="display:flex;flex-wrap:wrap;gap:6px"></div><p class="s-src" id="langNote"></p></div>
+    </section>
+  </div>
 </main>
 <footer class="s-foot"><p>Organisation names are public. Roles are proposals aligned with the county-led, State-supported model; they do not replace any county or State emergency operations plan.</p></footer>
 <script type="module" src="/src/roles.js"></script>
