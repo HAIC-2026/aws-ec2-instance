@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "lucide": "^1.62.0",
-    "maplibre-gl": "^6.18.0",
+    "maplibre-gl": "^6.19.0",
     "three": "^0.186.1"
   },
   "description": "AllReady \u2014 access and functional needs (AFN) mass-care planning for Hawai\u02bbi (HAIC 2026, DHS ESF-6 challenge)",
